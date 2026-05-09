@@ -1,0 +1,402 @@
+-- ═══════════════════════════════════════════════════════════════════
+-- KTÜ Online Sanat Galerisi ve Atölye Rezervasyon Sistemi
+-- TAM KURULUM DOSYASI — Sıfırdan çalıştırılır
+-- Çalıştırma: mysql -u root -p < kurulum.sql
+-- ═══════════════════════════════════════════════════════════════════
+
+SET SQL_SAFE_UPDATES = 0;
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Veritabanını sıfırla ve yeniden oluştur
+DROP DATABASE IF EXISTS sanat_galerisi;
+CREATE DATABASE sanat_galerisi CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci;
+USE sanat_galerisi;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- TABLOLAR
+-- ═══════════════════════════════════════════════════════════════════
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(120) NOT NULL,
+    email VARCHAR(180) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('kullanici','admin') DEFAULT 'kullanici',
+    created_at DATETIME DEFAULT NOW()
+);
+
+CREATE TABLE artists (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(120) NOT NULL,
+    bio TEXT,
+    birth_year INT,
+    nationality VARCHAR(80)
+);
+
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(80) NOT NULL
+);
+
+CREATE TABLE artworks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    artist_id INT,
+    category_id INT,
+    description TEXT,
+    price DECIMAL(12,2) NOT NULL,
+    image_url VARCHAR(300),
+    year_created INT,
+    medium VARCHAR(100),
+    dimensions VARCHAR(80),
+    discount_percent INT DEFAULT 0,
+    stock INT DEFAULT 1,
+    created_at DATETIME DEFAULT NOW(),
+    FOREIGN KEY (artist_id) REFERENCES artists(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+CREATE TABLE events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    event_type ENUM('atolye','sergi','konferans','tur') DEFAULT 'atolye',
+    event_date DATETIME NOT NULL,
+    duration_minutes INT DEFAULT 120,
+    location VARCHAR(200),
+    capacity INT NOT NULL,
+    price DECIMAL(10,2) DEFAULT 0,
+    image_url VARCHAR(300),
+    discount_percent INT DEFAULT 0,
+    created_at DATETIME DEFAULT NOW()
+);
+
+CREATE TABLE favorites (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    artwork_id INT NOT NULL,
+    created_at DATETIME DEFAULT NOW(),
+    UNIQUE (user_id, artwork_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (artwork_id) REFERENCES artworks(id)
+);
+
+CREATE TABLE reservations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    event_id INT NOT NULL,
+    participant_count INT DEFAULT 1,
+    reservation_date DATE NOT NULL,
+    status ENUM('beklemede','onaylandı','iptal') DEFAULT 'beklemede',
+    created_at DATETIME DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    artwork_id INT,
+    event_id INT,
+    amount DECIMAL(12,2) NOT NULL,
+    payment_method ENUM('kredi_karti','banka_havalesi','kapida_odeme') DEFAULT 'kredi_karti',
+    status ENUM('beklemede','onaylandı','kargoda','teslim_edildi','iptal') DEFAULT 'beklemede',
+    created_at DATETIME DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (artwork_id) REFERENCES artworks(id),
+    FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
+CREATE TABLE coupons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    discount_percent INT NOT NULL,
+    is_active TINYINT DEFAULT 1,
+    is_public TINYINT DEFAULT 1,
+    expires_at DATE,
+    description VARCHAR(200)
+);
+
+CREATE TABLE support_tickets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    name VARCHAR(120) NOT NULL,
+    email VARCHAR(180) NOT NULL,
+    message TEXT NOT NULL,
+    status ENUM('açık','işlemde','kapatıldı') DEFAULT 'açık',
+    admin_reply TEXT DEFAULT NULL,
+    replied_at DATETIME DEFAULT NULL,
+    created_at DATETIME DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE reviews (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    artwork_id INT,
+    event_id INT,
+    rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT NOT NULL,
+    is_verified TINYINT DEFAULT 0,
+    created_at DATETIME DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (artwork_id) REFERENCES artworks(id),
+    FOREIGN KEY (event_id) REFERENCES events(id)
+);
+
+CREATE TABLE review_votes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT NOT NULL,
+    user_id INT NOT NULL,
+    is_helpful TINYINT DEFAULT 1,
+    UNIQUE (review_id, user_id),
+    FOREIGN KEY (review_id) REFERENCES reviews(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE review_replies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    review_id INT UNIQUE NOT NULL,
+    admin_id INT NOT NULL,
+    reply TEXT NOT NULL,
+    created_at DATETIME DEFAULT NOW(),
+    updated_at DATETIME DEFAULT NOW() ON UPDATE NOW(),
+    FOREIGN KEY (review_id) REFERENCES reviews(id),
+    FOREIGN KEY (admin_id) REFERENCES users(id)
+);
+
+CREATE TABLE artwork_views (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    artwork_id INT NOT NULL,
+    viewed_at DATETIME DEFAULT NOW(),
+    FOREIGN KEY (artwork_id) REFERENCES artworks(id)
+);
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- VERİLER
+-- ═══════════════════════════════════════════════════════════════════
+
+-- ── Kullanıcılar ─────────────────────────────────────────────────
+INSERT INTO users (full_name, email, password, role) VALUES
+('Admin',      'admin@ktu.edu.tr', 'admin123', 'admin'),
+('Ali Yılmaz', 'ali@mail.com',     '123456',   'kullanici'),
+('Ayşe Kara',  'ayse@mail.com',    '123456',   'kullanici');
+
+-- ── Sanatçılar ───────────────────────────────────────────────────
+INSERT INTO artists (name, bio, birth_year, nationality) VALUES
+('Leonardo da Vinci',  'Italyan Ronesans ustasi. Ressam, bilim insani ve mucit.',                        1452, 'İtalyan'),
+('Vincent van Gogh',   'Post-empresyonizmin öncüsü. Canli renkleri ve yogun firca darbeleriyle taninir.',1853, 'Hollandalı'),
+('Edvard Munch',       'Ekspresyonizmin öncüsü, varoluşsal kaygılariyla taninan Norvecli ressam.',       1863, 'Norveçli'),
+('Raphael',            'Ronesansin uc büyük ustasindan biri; denge ve armoni sembolü.',                  1483, 'İtalyan'),
+('Michelangelo',       'Ronesansin dehasi; Sistine Sapeli tavani ve heykeltrasligiyla ünlü.',            1475, 'İtalyan'),
+('Salvador Dali',      'Sürrealizmin en taninan ismi; bilincdisi ve rüya imgelerini tuvallestirdi.',     1904, 'İspanyol'),
+('Gustav Klimt',       'Viyana Sezesyon hareketinin önderi; altin yaprak kullanimiyla ünlü.',            1862, 'Avusturyalı'),
+('Sandro Botticelli',  'Italyan Erken Ronesans ustasi; mitolojik sahneleriyle taninir.',                 1445, 'İtalyan'),
+('Osman Hamdi Bey',    'Osmanli döneminin önemli ressami ve müzeci.',                                    1842, 'Türk');
+
+-- ── Kategoriler ──────────────────────────────────────────────────
+INSERT INTO categories (name) VALUES
+('Rönesans'),          -- 1
+('Post-Empresyonizm'), -- 2
+('Ekspresyonizm'),     -- 3
+('Sürrealizm'),        -- 4
+('Sembolizm'),         -- 5
+('Türk Resim Sanatı'), -- 6
+('Modern Sanat');      -- 7
+
+-- ── Eserler (11 adet — images/ klasörüyle birebir eşleşir) ───────
+INSERT INTO artworks (title, artist_id, category_id, description, price, image_url, year_created, medium, dimensions, discount_percent, stock) VALUES
+('Mona Lisa',
+ 1, 1,
+ 'Dünyanın en tanınan tablosu. Gizemli gülüşüyle yüzyıllardır büyülüyor.',
+ 150000.00, 'Mona_Lisa.jpg', 1503, 'Yağlıboya', '77x53 cm', 0, 1),
+
+('Yıldızlı Gece',
+ 2, 2,
+ 'Sarmal bulutlar ve parlak yıldızlarla dolu mistik bir gece manzarası.',
+ 120000.00, 'Yildizli_Gece.jpg', 1889, 'Yağlıboya', '73x92 cm', 10, 1),
+
+('Çığlık',
+ 3, 3,
+ 'Modern insanın varoluşsal kaygısını simgeleyen ikonik ekspresyonist şaheser.',
+ 180000.00, 'ciglik.jpg', 1893, 'Yağlıboya ve pastel', '91x73 cm', 0, 1),
+
+('Atina Okulu',
+ 4, 1,
+ 'Antik Yunan filozoflarini bir arada gösteren Ronesansin en büyük fresklerinden biri.',
+ 250000.00, 'atina_okulu.jpg', 1511, 'Fresk', '500x770 cm', 5, 1),
+
+('Ademin Yaratilisi',
+ 5, 1,
+ 'Sistine Sapeli tavanindaki ikonik sahne; Tanri ile Ademin parmak uclarinin bulusmasi.',
+ 300000.00, 'adem_yaratilis.jpg', 1512, 'Fresk', '280x570 cm', 0, 1),
+
+('Bellegin Azmi',
+ 6, 4,
+ 'Eriyen saatlerle zamanın göreceliğini sorgulayan sürrealizmin simge tablosu.',
+ 220000.00, 'bellegin_azmi.jpg', 1931, 'Yağlıboya', '24x33 cm', 15, 1),
+
+('Öpücük',
+ 7, 5,
+ 'Altin yapraklara sarılmış, birbirine kavuşmuş iki figürü yansıtan romantik şaheser.',
+ 195000.00, 'opucuk.jpg', 1908, 'Yağlıboya ve altin yaprak', '180x180 cm', 0, 1),
+
+('Venüsün Dogusu',
+ 8, 1,
+ 'Denizden cikan güzellik tanrıçasını betimleyen Botticellinin basyapiti.',
+ 175000.00, 'venusun_dogusu.jpg', 1485, 'Tempera', '172x278 cm', 10, 1),
+
+('Kaplumbağa Terbiyecisi',
+ 9, 6,
+ 'Osmanlı kültüründen bir sahne. Milli Saraylar koleksiyonunun gözbebeği.',
+ 95000.00, 'Kaplumbaga_terbiyecisi.jpg', 1906, 'Yağlıboya', '221x320 cm', 15, 1),
+
+('Son Aksam Yemegi',
+ 1, 1,
+ 'Isa ve havarileri son yemekte gösteren anitsal Ronesans eseri.',
+ 280000.00, 'son_aksam_yemegi.jpg', 1498, 'Tempera ve yağlıboya', '460x880 cm', 0, 1),
+
+('Galeri No. 13',
+ NULL, 7,
+ 'Cagdas Türk sanatından soyut bir kompozisyon; renk ve form dengesiyle dikkat cekiyor.',
+ 45000.00, 'galeri_13.jpg', 2020, 'Akrilik', '100x100 cm', 20, 3);
+
+-- ── Etkinlikler (15 adet) ─────────────────────────────────────────
+INSERT INTO events (title, description, event_type, event_date, duration_minutes, location, capacity, price, image_url, discount_percent) VALUES
+
+('Yağlıboya Başlangıç Atölyesi',
+ 'Sıfırdan yağlıboya öğrenmek isteyenler için 3 saatlik yoğun atölye. Tüm malzemeler dahildir.',
+ 'atolye', '2025-06-15 10:00:00', 180, 'KTÜ Sanat Merkezi - Salon A', 20, 450.00, 'Yildizli_Gece.jpg', 0),
+
+('Portre Çizimi Atölyesi',
+ 'Karakalem ve kömür tekniğiyle profesyonel portre çizimi. Orta seviye için uygundur.',
+ 'atolye', '2025-06-22 14:00:00', 150, 'KTÜ Sanat Merkezi - Salon B', 15, 350.00, 'Mona_Lisa.jpg', 10),
+
+('Suluboya ile Manzara',
+ 'Doğadan ilham alarak suluboya tekniğini öğrenin. Beginner ve orta seviye için.',
+ 'atolye', '2025-07-10 10:00:00', 180, 'KTÜ Sanat Merkezi - Salon A', 18, 400.00, 'venusun_dogusu.jpg', 0),
+
+('Heykel ve Seramik Atölyesi',
+ 'Kil ile şekillendirme, form ve doku çalışmaları. Tüm seviyeler için uygundur.',
+ 'atolye', '2025-07-20 13:00:00', 240, 'KTÜ Seramik Atölyesi', 12, 500.00, 'galeri_13.jpg', 15),
+
+('Dijital İllüstrasyon Atölyesi',
+ 'Tablet ve Procreate ile dijital sanat. Grafik tablet ile profesyonel illüstrasyon teknikleri.',
+ 'atolye', '2025-08-05 10:00:00', 180, 'KTÜ Bilgisayar Lab - 204', 25, 600.00, 'bellegin_azmi.jpg', 0),
+
+('Türk Resim Sanatı Sergisi',
+ 'Osmanlidan Cumhuriyete Türk resim sanatının yolculuğu. 50 özgün eser sergilenmektedir.',
+ 'sergi', '2025-06-20 09:00:00', 480, 'KTÜ Ana Sergi Salonu', 200, 0.00, 'Kaplumbaga_terbiyecisi.jpg', 0),
+
+('Rönesans Ustaları Sergisi',
+ 'Avrupa Rönesans sanatından reprodüksiyonlar ve dijital baskılar. Sanat tarihi seminerleri eşliğinde.',
+ 'sergi', '2025-07-01 09:00:00', 480, 'KTÜ Kültür Merkezi Galerisi', 150, 50.00, 'atina_okulu.jpg', 0),
+
+('Çağdaş Türk Sanatçılar',
+ 'Genç ve yerleşik Türk sanatçıların güncel çalışmalarını buluşturan karma sergi.',
+ 'sergi', '2025-07-15 10:00:00', 480, 'KTÜ Sanat Galerisi', 100, 0.00, 'galeri_13.jpg', 0),
+
+('Ekspresyonizm: Duygunun Dili',
+ 'Van Gogh, Munch ve cagdaslarinin ekspresyonist eserleri üzerine kurulu tematik sergi.',
+ 'sergi', '2025-08-01 09:00:00', 480, 'KTÜ Ana Sergi Salonu', 180, 75.00, 'ciglik.jpg', 20),
+
+('Dijital Sanat ve NFT Konferansı',
+ 'NFT ve dijital sanatın geleceği üzerine uzman paneli. Blockchain sanat piyasaları tartışılacak.',
+ 'konferans', '2025-07-05 14:00:00', 240, 'KTÜ Konferans Salonu', 150, 200.00, 'bellegin_azmi.jpg', 0),
+
+('Sanat Tarihi Semineri: Rönesans',
+ 'Dr. Ahmet Yıldız ile Rönesans dönemi sanatı, ikonografisi ve toplumsal bağlamı üzerine seminer.',
+ 'konferans', '2025-06-28 15:00:00', 180, 'KTÜ Amfitiyatro - 101', 120, 100.00, 'adem_yaratilis.jpg', 0),
+
+('Müze Yönetimi ve Küratörlük',
+ 'Cagdas müze yönetimi, koleksiyon geliştirme ve sergi tasarımı üzerine profesyonel panel.',
+ 'konferans', '2025-07-18 10:00:00', 300, 'KTÜ Rektörlük Toplantı Salonu', 80, 150.00, 'son_aksam_yemegi.jpg', 10),
+
+('Trabzon Müzesi Sanat Turu',
+ 'Trabzon müzelerinde rehberli sanat turu. Tarihi eserler ve yerel sanat geleneği keşfedilecek.',
+ 'tur', '2025-07-12 09:00:00', 360, 'Trabzon Müzesi', 30, 350.00, 'opucuk.jpg', 0),
+
+('İstanbul Modern Müze Gezisi',
+ 'Istanbul Modern Sanat Müzesi ve Pera Müzesi gezisi. Ulasim ve rehberlik dahildir.',
+ 'tur', '2025-07-26 07:00:00', 600, 'İstanbul - Karaköy', 25, 750.00, 'venusun_dogusu.jpg', 0),
+
+('Ankara Devlet Resim Heykel Müzesi',
+ 'Türkiyenin ilk devlet müzesinde kapsamlı bir kültür turu. Öğle yemeği dahildir.',
+ 'tur', '2025-08-10 07:30:00', 720, 'Ankara - Ulus', 20, 850.00, 'atina_okulu.jpg', 15);
+
+-- ── Kuponlar ─────────────────────────────────────────────────────
+INSERT INTO coupons (code, discount_percent, is_active, is_public, expires_at, description) VALUES
+('SANAT10', 10, 1, 1, '2025-12-31', 'Tüm eserlerde %10 indirim'),
+('KTU2025', 20, 1, 1, '2025-09-30', 'KTÜ öğrencilerine özel %20 indirim'),
+('YENI15',  15, 1, 1, '2025-06-30', 'Yeni üyelere özel %15 indirim');
+
+-- ── Rezervasyonlar ───────────────────────────────────────────────
+INSERT INTO reservations (user_id, event_id, participant_count, reservation_date, status) VALUES
+(2, 1, 2, '2025-06-15', 'onaylandı'),
+(3, 1, 1, '2025-06-15', 'onaylandı'),
+(2, 6, 3, '2025-06-20', 'beklemede'),
+(3, 10, 1, '2025-07-05', 'onaylandı');
+
+-- ── Siparişler ───────────────────────────────────────────────────
+INSERT INTO orders (user_id, artwork_id, event_id, amount, payment_method, status) VALUES
+(2, 1,    NULL, 150000.00, 'kredi_karti',    'onaylandı'),
+(2, NULL, 1,    450.00,    'kredi_karti',    'onaylandı'),
+(3, 2,    NULL, 108000.00, 'banka_havalesi', 'kargoda'),
+(3, NULL, 6,    0.00,      'kredi_karti',    'onaylandı');
+
+-- ── Yorumlar ─────────────────────────────────────────────────────
+INSERT INTO reviews (user_id, artwork_id, event_id, rating, comment, is_verified) VALUES
+(2, 1,    NULL, 5, 'Mona Lisa reprodüksiyonu mükemmeldi, firca darbeleri inanilmaz detaylı.', 1),
+(3, 1,    NULL, 4, 'Cok etkileyici bir eser. Kargo biraz geç geldi ama kalite harika.',       1),
+(2, 2,    NULL, 5, 'Yıldızlı Gece her zaman favorim. Baskı kalitesi cok yüksek.',             1),
+(3, 4,    NULL, 5, 'Kaplumbaga Terbiyecisi gercekten esşiz. Osmanli sanatının zirvesi.',       1),
+(2, NULL, 1,    4, 'Atolye cok verimli getti. Egitmen cok yetkiliydi.',                        1),
+(3, NULL, 6,    5, 'Türk Resim Sanatı Sergisi harikaydı. Kesinlikle tavsiye ederim.',          1);
+
+-- ── Yorum oyları ─────────────────────────────────────────────────
+INSERT INTO review_votes (review_id, user_id, is_helpful) VALUES
+(1, 3, 1),
+(2, 2, 1),
+(3, 3, 1),
+(5, 3, 1);
+
+-- ── Görüntülenme ─────────────────────────────────────────────────
+INSERT INTO artwork_views (artwork_id) VALUES
+(1),(1),(1),(1),(1),
+(2),(2),(2),
+(3),(3),
+(4),(4),(4),
+(5),(5),
+(6),(7),(7),(8),(9),(10),(11);
+
+-- ── Destek talepleri ─────────────────────────────────────────────
+INSERT INTO support_tickets (user_id, name, email, message, status) VALUES
+(2, 'Ali Yılmaz', 'ali@mail.com',  'Siparisim 3 gündür kargoda görünüyor, ne zaman gelir?',                  'işlemde'),
+(3, 'Ayşe Kara',  'ayse@mail.com', 'Atolye rezervasyonumu iptal etmek istiyorum, ücret iadesi nasil yapılır?', 'açık');
+
+SET SQL_SAFE_UPDATES = 1;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- DOĞRULAMA — Kurulum sonrası kontrol sorguları
+-- ═══════════════════════════════════════════════════════════════════
+SELECT 'users'          AS tablo, COUNT(*) AS adet FROM users
+UNION ALL SELECT 'artists',        COUNT(*) FROM artists
+UNION ALL SELECT 'categories',     COUNT(*) FROM categories
+UNION ALL SELECT 'artworks',       COUNT(*) FROM artworks
+UNION ALL SELECT 'events',         COUNT(*) FROM events
+UNION ALL SELECT 'coupons',        COUNT(*) FROM coupons
+UNION ALL SELECT 'reservations',   COUNT(*) FROM reservations
+UNION ALL SELECT 'orders',         COUNT(*) FROM orders
+UNION ALL SELECT 'reviews',        COUNT(*) FROM reviews
+UNION ALL SELECT 'review_votes',   COUNT(*) FROM review_votes
+UNION ALL SELECT 'support_tickets',COUNT(*) FROM support_tickets
+UNION ALL SELECT 'artwork_views',  COUNT(*) FROM artwork_views;
+-- ═══════════════════════════════════════════════════════════════════
+-- GÜNCELLEME: support_tickets tablosuna admin_reply kolonu ekle
+-- (Zaten kurulmuşsa bu satırı çalıştırın)
+-- ═══════════════════════════════════════════════════════════════════
+ALTER TABLE support_tickets 
+  ADD COLUMN IF NOT EXISTS admin_reply TEXT DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS replied_at DATETIME DEFAULT NULL;

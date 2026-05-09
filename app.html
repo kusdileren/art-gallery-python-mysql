@@ -1,0 +1,2792 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KTÜ Sanat Galerisi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Cormorant+Garamond:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #f9f6f1;
+      --white: #ffffff;
+      --border: #e8e0d8;
+      --border-light: #f0ebe4;
+      --text-dark: #1a1a1a;
+      --text-mid: #4a4a4a;
+      --text-muted: #9a9090;
+      --accent: #c8a96e;
+      --accent-dark: #a8894e;
+      --red: #c0392b;
+      --green: #2d7a2d;
+      --nav-bg: #1a1a1a;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Lato',sans-serif; background:var(--cream); color:var(--text-dark); min-height:100vh; }
+
+    /* TOP BAR */
+    .top-bar { background:var(--white); border-bottom:1px solid var(--border); padding:8px 40px; display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--text-muted); letter-spacing:.5px; }
+    .top-bar-right { display:flex; gap:16px; align-items:center; }
+    .top-bar-btn { padding:5px 14px; border:1px solid var(--border); background:transparent; cursor:pointer; font-size:12px; letter-spacing:.5px; color:var(--text-dark); transition:all .2s; }
+    .top-bar-btn:hover, .top-bar-btn.primary { background:var(--nav-bg); color:white; border-color:var(--nav-bg); }
+    #user-info { display:none; align-items:center; gap:10px; font-size:12px; }
+    #user-info span { color:var(--accent); font-weight:700; }
+
+    /* HEADER */
+    .header { background:var(--white); padding:20px 40px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
+    .logo { font-family:'Playfair Display',serif; font-size:36px; font-style:italic; color:var(--text-dark); letter-spacing:-.5px; line-height:1; cursor:pointer; }
+    .logo span { display:block; font-family:'Lato',sans-serif; font-size:10px; font-style:normal; font-weight:300; letter-spacing:3px; text-transform:uppercase; color:var(--text-muted); margin-top:3px; }
+    .search-box { display:flex; border:1px solid var(--border); overflow:hidden; }
+    .search-box input { padding:8px 16px; border:none; outline:none; font-size:13px; width:220px; background:var(--white); font-family:'Lato',sans-serif; }
+    .search-box button { padding:8px 14px; background:var(--nav-bg); border:none; color:white; cursor:pointer; font-size:14px; }
+
+    /* NAV */
+    .nav { background:var(--white); border-bottom:2px solid var(--border); padding:0 40px; }
+    .nav ul { list-style:none; display:flex; }
+    .nav ul li a { display:block; padding:14px 20px; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-mid); text-decoration:none; border-right:1px solid var(--border-light); transition:all .2s; }
+    .nav ul li a:hover, .nav ul li a.active { color:var(--text-dark); background:var(--cream); }
+    .nav ul li:first-child a { border-left:1px solid var(--border-light); }
+
+    /* HERO */
+    .hero { position:relative; background:linear-gradient(135deg,#1a1a1a 0%,#2d2419 50%,#1a1a1a 100%); overflow:hidden; height:420px; display:flex; align-items:center; }
+    .hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 70% 50%,rgba(200,169,110,.15) 0%,transparent 60%); }
+    .hero-content { position:relative; z-index:2; padding:0 80px; max-width:580px; }
+    .hero-subtitle { font-family:'Lato',sans-serif; font-size:11px; letter-spacing:4px; text-transform:uppercase; color:var(--accent); margin-bottom:16px; }
+    .hero h1 { font-family:'Playfair Display',serif; font-size:52px; font-weight:400; color:white; line-height:1.15; margin-bottom:20px; }
+    .hero h1 em { font-style:italic; color:var(--accent); }
+    .hero p { font-family:'Cormorant Garamond',serif; font-size:18px; color:rgba(255,255,255,.65); line-height:1.6; margin-bottom:32px; }
+    .hero-btn { display:inline-block; padding:13px 32px; background:var(--accent); color:white; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; border:none; transition:background .2s; font-family:'Lato',sans-serif; }
+    .hero-btn:hover { background:var(--accent-dark); }
+    .hero-decorative { position:absolute; right:60px; top:50%; transform:translateY(-50%); width:280px; height:280px; border:1px solid rgba(200,169,110,.3); border-radius:50%; display:flex; align-items:center; justify-content:center; }
+    .hero-decorative::before { content:''; width:220px; height:220px; border:1px solid rgba(200,169,110,.15); border-radius:50%; }
+
+    /* SHOWCASE */
+    .showcase { background:var(--white); border-bottom:1px solid var(--border); }
+    .showcase-inner { display:grid; grid-template-columns:repeat(3,1fr); max-width:1200px; margin:0 auto; }
+    .showcase-item { padding:36px 32px; border-right:1px solid var(--border); display:flex; align-items:center; gap:20px; transition:background .2s; cursor:pointer; }
+    .showcase-item:last-child { border-right:none; }
+    .showcase-item:hover { background:var(--cream); }
+    .showcase-icon { width:52px; height:52px; background:var(--cream); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+    .showcase-text h3 { font-family:'Playfair Display',serif; font-size:18px; font-weight:600; margin-bottom:6px; }
+    .showcase-text p { font-size:13px; color:var(--text-muted); line-height:1.5; }
+    .showcase-btn { margin-top:12px; display:inline-block; padding:6px 16px; border:1px solid var(--nav-bg); font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--nav-bg); cursor:pointer; background:transparent; transition:all .2s; }
+    .showcase-btn:hover { background:var(--nav-bg); color:white; }
+
+    /* SECTION */
+    .section { padding:60px 40px; max-width:1280px; margin:0 auto; }
+    .section-title { font-family:'Playfair Display',serif; font-size:28px; font-weight:400; margin-bottom:8px; display:flex; align-items:center; gap:12px; }
+    .section-title::after { content:''; flex:1; height:1px; background:var(--border); margin-left:8px; }
+    .section-title span { color:var(--accent); font-style:italic; }
+    .section-subtitle { font-size:13px; color:var(--text-muted); letter-spacing:.5px; margin-bottom:36px; }
+
+    /* PRODUCT GRID */
+    .product-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
+    .product-card { background:var(--white); border:1px solid var(--border); overflow:hidden; transition:box-shadow .25s,transform .25s; position:relative; cursor:pointer; animation:fadeUp .5s both; }
+    .product-card:hover { box-shadow:0 8px 32px rgba(0,0,0,.10); transform:translateY(-3px); }
+    .product-img-wrap { position:relative; aspect-ratio:1; overflow:hidden; background:var(--cream); }
+    .product-img-wrap img { width:100%; height:100%; object-fit:cover; transition:transform .4s ease; }
+    .product-card:hover .product-img-wrap img { transform:scale(1.06); }
+    .product-overlay { position:absolute; inset:0; background:rgba(26,26,26,.55); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .25s; }
+    .product-card:hover .product-overlay { opacity:1; }
+    .product-overlay button { padding:10px 24px; background:var(--accent); border:none; color:white; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; font-family:'Lato',sans-serif; }
+    .product-badge { position:absolute; top:12px; left:12px; background:var(--accent); color:white; font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:3px 10px; }
+    .product-badge.discount { background:var(--red); }
+    .product-info { padding:16px 18px 20px; }
+    .product-artist { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px; }
+    .product-title { font-family:'Playfair Display',serif; font-size:16px; font-weight:600; margin-bottom:8px; line-height:1.3; }
+    .product-desc { font-size:12px; color:var(--text-muted); line-height:1.5; margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .product-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+    .product-price { font-family:'Playfair Display',serif; font-size:18px; color:var(--accent-dark); font-weight:600; }
+    .product-price s { font-size:13px; color:var(--text-muted); font-family:'Lato',sans-serif; }
+    .product-stars { font-size:12px; color:var(--accent); margin-bottom:4px; }
+    .add-cart-btn { padding:7px 16px; background:var(--nav-bg); color:white; border:none; font-size:11px; letter-spacing:1px; cursor:pointer; font-family:'Lato',sans-serif; transition:background .2s; }
+    .add-cart-btn:hover { background:#333; }
+
+    /* CART ICON */
+    .cart-icon-btn { position:relative; background:none; border:none; cursor:pointer; font-size:22px; color:var(--text-dark); padding:4px 8px; transition:color .2s; }
+    .cart-icon-btn:hover { color:var(--accent); }
+    .cart-badge { position:absolute; top:0; right:0; background:var(--red); color:white; font-size:9px; font-weight:700; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; display:none; }
+    .cart-badge.show { display:flex; }
+
+    /* CART SIDEBAR */
+    .cart-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:1100; }
+    .cart-overlay.open { display:block; }
+    .cart-sidebar { position:fixed; top:0; right:-420px; width:400px; height:100vh; background:var(--white); z-index:1101; display:flex; flex-direction:column; box-shadow:-8px 0 32px rgba(0,0,0,.15); transition:right .35s cubic-bezier(.4,0,.2,1); }
+    .cart-sidebar.open { right:0; }
+    .cart-sidebar-header { padding:24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; background:var(--nav-bg); color:white; }
+    .cart-sidebar-header h3 { font-family:'Playfair Display',serif; font-size:20px; font-weight:400; }
+    .cart-sidebar-header button { background:none; border:none; color:white; font-size:20px; cursor:pointer; }
+    .cart-items { flex:1; overflow-y:auto; padding:16px; }
+    .cart-item { display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--border-light); align-items:flex-start; }
+    .cart-item img { width:64px; height:64px; object-fit:cover; border:1px solid var(--border); flex-shrink:0; }
+    .cart-item-info { flex:1; }
+    .cart-item-title { font-family:'Playfair Display',serif; font-size:14px; margin-bottom:4px; line-height:1.3; }
+    .cart-item-sub { font-size:11px; color:var(--text-muted); margin-bottom:6px; letter-spacing:.5px; }
+    .cart-item-price { font-family:'Playfair Display',serif; font-size:16px; color:var(--accent-dark); }
+    .cart-item-remove { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px; padding:2px 6px; transition:color .2s; flex-shrink:0; }
+    .cart-item-remove:hover { color:var(--red); }
+    .cart-footer { padding:20px 24px; border-top:1px solid var(--border); background:var(--cream); }
+    .cart-total-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .cart-total-label { font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
+    .cart-total-price { font-family:'Playfair Display',serif; font-size:24px; color:var(--accent-dark); }
+
+    /* CHECKOUT MODAL - çok adımlı ödeme */
+    .checkout-step { display:none; }
+    .checkout-step.active { display:block; }
+    .step-indicator { display:flex; gap:0; margin-bottom:28px; }
+    .step-dot { flex:1; text-align:center; position:relative; }
+    .step-dot::before { content:''; position:absolute; top:14px; left:50%; right:-50%; height:2px; background:var(--border); z-index:0; }
+    .step-dot:last-child::before { display:none; }
+    .step-dot-inner { width:28px; height:28px; border-radius:50%; border:2px solid var(--border); background:var(--white); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; position:relative; z-index:1; color:var(--text-muted); transition:all .3s; }
+    .step-dot.done .step-dot-inner { background:var(--green); border-color:var(--green); color:white; }
+    .step-dot.active .step-dot-inner { background:var(--accent); border-color:var(--accent); color:white; }
+    .step-dot-label { display:block; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); margin-top:6px; }
+    .step-dot.active .step-dot-label { color:var(--accent); font-weight:700; }
+    .payment-method-cards { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
+    .pay-card { border:2px solid var(--border); padding:14px 10px; text-align:center; cursor:pointer; transition:all .2s; border-radius:2px; }
+    .pay-card:hover { border-color:var(--accent); }
+    .pay-card.selected { border-color:var(--accent); background:rgba(200,169,110,.07); }
+    .pay-card-icon { font-size:24px; display:block; margin-bottom:6px; }
+    .pay-card-label { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--text-mid); }
+    .card-input-group { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .order-success-icon { width:70px; height:70px; background:var(--green); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:32px; color:white; }
+    .order-steps { margin-top:20px; }
+    .order-step-row { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--border-light); }
+    .order-step-num { width:28px; height:28px; border-radius:50%; background:var(--accent); color:white; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+    .order-step-text { font-size:13px; color:var(--text-mid); }
+    .order-step-text b { display:block; font-size:14px; color:var(--text-dark); margin-bottom:2px; }
+
+    /* EVENT DETAIL MODAL */
+    .event-detail-modal { max-width:640px; }
+    .event-detail-img { width:100%; height:220px; object-fit:cover; display:block; }
+    .event-detail-body { padding:28px 32px; }
+    .event-detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+    .event-detail-item { background:var(--cream); padding:12px 16px; border-left:3px solid var(--accent); }
+    .event-detail-item label { display:block; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); margin-bottom:4px; }
+    .event-detail-item span { font-size:14px; color:var(--text-dark); font-weight:500; }
+    .fav-btn { padding:7px 10px; background:transparent; border:1px solid var(--border); color:var(--text-muted); font-size:14px; cursor:pointer; transition:all .2s; }
+    .fav-btn:hover, .fav-btn.active { color:var(--red); border-color:var(--red); }
+    .compare-check { position:absolute; top:12px; right:12px; width:22px; height:22px; accent-color:var(--accent); cursor:pointer; }
+
+    /* LOADING */
+    .loading { grid-column:1/-1; text-align:center; padding:60px; color:var(--text-muted); font-family:'Cormorant Garamond',serif; font-size:18px; font-style:italic; }
+    .spinner { width:36px; height:36px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 16px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none} }
+
+    /* FILTER BAR */
+    .filter-bar { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px; align-items:center; }
+    .filter-btn { padding:7px 18px; border:1px solid var(--border); background:transparent; font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--text-mid); cursor:pointer; transition:all .2s; }
+    .filter-btn:hover, .filter-btn.active { background:var(--nav-bg); color:white; border-color:var(--nav-bg); }
+    .filter-select { padding:7px 12px; border:1px solid var(--border); background:var(--white); font-size:12px; font-family:'Lato',sans-serif; color:var(--text-dark); cursor:pointer; }
+
+    /* EVENT CARDS */
+    .event-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+    .event-card { background:var(--white); border:1px solid var(--border); overflow:hidden; transition:box-shadow .25s,transform .25s; animation:fadeUp .5s both; }
+    .event-card:hover { box-shadow:0 8px 32px rgba(0,0,0,.10); transform:translateY(-3px); }
+    .event-img { width:100%; height:180px; object-fit:cover; background:var(--cream); display:flex; align-items:center; justify-content:center; font-size:48px; }
+    .event-img img { width:100%; height:100%; object-fit:cover; }
+    .event-body { padding:20px; }
+    .event-type { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:8px; }
+    .event-title { font-family:'Playfair Display',serif; font-size:18px; margin-bottom:10px; }
+    .event-meta { font-size:12px; color:var(--text-muted); line-height:1.8; }
+    .event-meta b { color:var(--text-dark); }
+    .event-footer { padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    .event-price { font-family:'Playfair Display',serif; font-size:18px; color:var(--accent-dark); }
+    .capacity-bar { height:4px; background:var(--border); border-radius:2px; margin-top:8px; }
+    .capacity-fill { height:100%; background:var(--accent); border-radius:2px; transition:width .5s; }
+
+    /* MODAL */
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(10,10,10,.75); z-index:1000; align-items:center; justify-content:center; }
+    .modal-bg.open { display:flex; }
+    .modal { background:var(--white); max-width:800px; width:94%; max-height:90vh; overflow-y:auto; position:relative; }
+    .modal-close { position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-mid); z-index:2; }
+    .modal-grid { display:grid; grid-template-columns:1fr 1fr; }
+    .modal-img { aspect-ratio:1; object-fit:cover; width:100%; }
+    .modal-body { padding:36px; overflow-y:auto; }
+    .modal-artist { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+    .modal-title { font-family:'Playfair Display',serif; font-size:24px; margin-bottom:10px; line-height:1.3; }
+    .modal-meta { font-size:13px; color:var(--text-muted); margin-bottom:16px; line-height:1.8; }
+    .modal-price { font-family:'Playfair Display',serif; font-size:28px; color:var(--accent-dark); margin-bottom:8px; }
+    .modal-desc { font-family:'Cormorant Garamond',serif; font-size:16px; color:var(--text-mid); line-height:1.7; margin-bottom:20px; }
+    .modal-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
+    .modal-tabs { display:flex; border-bottom:1px solid var(--border); margin-bottom:20px; }
+    .modal-tab { padding:10px 20px; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; color:var(--text-muted); transition:all .2s; }
+    .modal-tab.active { border-bottom-color:var(--accent); color:var(--text-dark); }
+    .modal-tab-content { display:none; }
+    .modal-tab-content.active { display:block; }
+
+    /* REVIEWS */
+    .review-item { padding:16px 0; border-bottom:1px solid var(--border-light); }
+    .review-item:last-child { border-bottom:none; }
+    .review-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .review-user { font-weight:700; font-size:13px; }
+    .review-date { font-size:11px; color:var(--text-muted); }
+    .review-stars { color:var(--accent); font-size:14px; margin-bottom:6px; }
+    .review-comment { font-size:14px; color:var(--text-mid); line-height:1.6; }
+    .review-verified { font-size:10px; color:var(--green); letter-spacing:1px; text-transform:uppercase; margin-top:4px; }
+    .review-actions { display:flex; gap:8px; margin-top:8px; }
+    .review-vote-btn { padding:4px 12px; border:1px solid var(--border); background:transparent; font-size:11px; cursor:pointer; color:var(--text-muted); transition:all .2s; }
+    .review-vote-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .review-reply { background:var(--cream); padding:12px 16px; margin-top:10px; border-left:3px solid var(--accent); }
+    .review-reply-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:4px; }
+    .review-form { margin-top:20px; }
+    .star-input { display:flex; flex-direction:row-reverse; justify-content:flex-end; gap:4px; margin-bottom:12px; }
+    .star-input input { display:none; }
+    .star-input label { font-size:24px; color:var(--border); cursor:pointer; transition:color .2s; }
+    .star-input input:checked ~ label, .star-input label:hover, .star-input label:hover ~ label { color:var(--accent); }
+    .rating-bars { margin:12px 0; }
+    .rating-row { display:flex; align-items:center; gap:10px; margin-bottom:6px; font-size:12px; }
+    .rating-bar { flex:1; height:6px; background:var(--border); border-radius:3px; }
+    .rating-bar-fill { height:100%; background:var(--accent); border-radius:3px; }
+
+    /* AUTH */
+    .auth-section { max-width:560px; margin:60px auto; padding:0 40px 60px; }
+    .auth-tabs { display:flex; border-bottom:2px solid var(--border); margin-bottom:40px; }
+    .auth-tab { padding:12px 32px; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; color:var(--text-muted); transition:all .2s; }
+    .auth-tab.active { border-bottom-color:var(--accent); color:var(--text-dark); }
+    .form-group { margin-bottom:20px; }
+    .form-group label { display:block; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; color:var(--text-mid); }
+    .form-group input, .form-group select, .form-group textarea { width:100%; padding:11px 14px; border:1px solid var(--border); background:var(--white); font-size:14px; font-family:'Lato',sans-serif; outline:none; transition:border-color .2s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--accent); }
+    .form-group textarea { resize:vertical; min-height:100px; }
+    .form-submit { padding:13px 40px; background:var(--nav-bg); color:white; border:none; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; font-family:'Lato',sans-serif; transition:background .2s; width:100%; margin-top:8px; }
+    .form-submit:hover { background:#333; }
+    .form-msg { margin-top:14px; font-size:13px; padding:10px 14px; }
+    .form-msg.success { background:#f0f7f0; color:var(--green); border-left:3px solid var(--green); }
+    .form-msg.error { background:#fdf0f0; color:var(--red); border-left:3px solid var(--red); }
+
+    /* ACCOUNT PANEL */
+    .account-layout { display:grid; grid-template-columns:220px 1fr; gap:32px; }
+    .account-menu { background:var(--white); border:1px solid var(--border); padding:8px 0; height:fit-content; }
+    .account-menu-item { padding:13px 24px; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; border-left:3px solid transparent; color:var(--text-mid); transition:all .2s; }
+    .account-menu-item:hover, .account-menu-item.active { background:var(--cream); border-left-color:var(--accent); color:var(--text-dark); }
+    .account-panel { display:none; }
+    .account-panel.active { display:block; }
+
+    /* STATS */
+    .stat-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin-bottom:36px; }
+    .stat-card { background:var(--white); border:1px solid var(--border); padding:24px; text-align:center; }
+    .stat-num { font-family:'Playfair Display',serif; font-size:36px; color:var(--accent); margin-bottom:6px; }
+    .stat-label { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-muted); }
+    .stat-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .stat-table th { text-align:left; padding:10px 14px; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); border-bottom:2px solid var(--border); }
+    .stat-table td { padding:12px 14px; border-bottom:1px solid var(--border-light); vertical-align:middle; }
+    .stat-table tr:hover td { background:var(--cream); }
+
+    /* COMPARE */
+    .compare-bar { position:fixed; bottom:0; left:0; right:0; background:var(--nav-bg); color:white; padding:14px 40px; display:none; align-items:center; justify-content:space-between; z-index:500; border-top:3px solid var(--accent); }
+    .compare-bar.show { display:flex; }
+    .compare-items { display:flex; gap:16px; align-items:center; }
+    .compare-item-tag { background:rgba(255,255,255,.1); padding:4px 14px; font-size:12px; display:flex; align-items:center; gap:8px; }
+    .compare-item-tag button { background:none; border:none; color:white; cursor:pointer; font-size:14px; }
+    .compare-actions { display:flex; gap:12px; }
+    .compare-go-btn { padding:8px 24px; background:var(--accent); border:none; color:white; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
+    .compare-clear-btn { padding:8px 24px; background:transparent; border:1px solid rgba(255,255,255,.3); color:white; font-size:12px; letter-spacing:1px; text-transform:uppercase; cursor:pointer; }
+
+    /* COMPARE TABLE */
+    .compare-table { width:100%; border-collapse:collapse; }
+    .compare-table th { background:var(--nav-bg); color:white; padding:16px; text-align:center; font-family:'Playfair Display',serif; font-size:16px; }
+    .compare-table th:first-child { background:var(--cream); color:var(--text-muted); font-size:11px; letter-spacing:1px; text-transform:uppercase; font-family:'Lato',sans-serif; text-align:left; }
+    .compare-table td { padding:12px 16px; border-bottom:1px solid var(--border); font-size:13px; text-align:center; }
+    .compare-table td:first-child { font-weight:700; text-align:left; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--text-muted); background:var(--cream); }
+    .compare-table img { width:80px; height:80px; object-fit:cover; }
+
+    /* SUPPORT CHAT */
+    .chat-widget { position:fixed; bottom:90px; right:28px; width:340px; background:var(--white); border:1px solid var(--border); box-shadow:0 8px 32px rgba(0,0,0,.12); display:none; flex-direction:column; z-index:800; }
+    .chat-widget.open { display:flex; }
+    .chat-header { background:var(--nav-bg); color:white; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; font-size:13px; letter-spacing:1px; text-transform:uppercase; }
+    .chat-messages { flex:1; padding:16px; height:250px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+    .chat-msg { max-width:85%; padding:10px 14px; font-size:13px; line-height:1.5; border-radius:2px; }
+    .chat-msg.bot { background:var(--cream); align-self:flex-start; border-left:3px solid var(--accent); }
+    .chat-msg.user { background:var(--nav-bg); color:white; align-self:flex-end; }
+    .chat-input-row { display:flex; border-top:1px solid var(--border); }
+    .chat-input-row input { flex:1; padding:12px 14px; border:none; outline:none; font-size:13px; font-family:'Lato',sans-serif; }
+    .chat-input-row button { padding:12px 16px; background:var(--accent); border:none; color:white; cursor:pointer; font-size:16px; }
+    .chat-toggle { position:fixed; bottom:28px; right:28px; width:52px; height:52px; background:var(--nav-bg); border:none; color:white; font-size:22px; border-radius:50%; cursor:pointer; z-index:801; box-shadow:0 4px 16px rgba(0,0,0,.2); transition:background .2s; }
+    .chat-toggle:hover { background:var(--accent); }
+
+    /* NOTIFICATION */
+    .notif { position:fixed; bottom:28px; right:90px; background:var(--nav-bg); color:white; padding:14px 24px; font-size:13px; z-index:9999; transform:translateY(80px); opacity:0; transition:all .3s; border-left:3px solid var(--accent); max-width:320px; }
+    .notif.show { transform:translateY(0); opacity:1; }
+
+    /* FOOTER */
+    footer { background:var(--nav-bg); color:rgba(255,255,255,.55); margin-top:60px; }
+    .footer-top { display:grid; grid-template-columns:repeat(4,1fr); gap:40px; padding:50px 40px; border-bottom:1px solid rgba(255,255,255,.08); max-width:1280px; margin:0 auto; }
+    .footer-col h4 { font-family:'Lato',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:white; margin-bottom:18px; }
+    .footer-col ul { list-style:none; }
+    .footer-col ul li { margin-bottom:10px; }
+    .footer-col ul li a { color:rgba(255,255,255,.5); text-decoration:none; font-size:13px; transition:color .2s; cursor:pointer; }
+    .footer-col ul li a:hover { color:var(--accent); }
+    .footer-bottom { padding:20px 40px; text-align:center; font-size:12px; color:rgba(255,255,255,.3); }
+
+    /* PAGES */
+    .page { display:none; }
+    .page.active { display:block; }
+
+    /* UTIL */
+    .btn-accent { padding:10px 24px; background:var(--accent); color:white; border:none; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; font-family:'Lato',sans-serif; transition:background .2s; }
+    .btn-accent:hover { background:var(--accent-dark); }
+    .btn-dark { padding:10px 24px; background:var(--nav-bg); color:white; border:none; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; font-family:'Lato',sans-serif; transition:background .2s; }
+    .btn-dark:hover { background:#333; }
+    .btn-outline { padding:9px 22px; background:transparent; color:var(--text-dark); border:1px solid var(--border); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; font-family:'Lato',sans-serif; transition:all .2s; }
+    .btn-outline:hover { background:var(--nav-bg); color:white; border-color:var(--nav-bg); }
+    .status-badge { display:inline-block; padding:3px 10px; font-size:10px; letter-spacing:1px; text-transform:uppercase; }
+    .status-badge.onaylandi { background:#f0f7f0; color:var(--green); }
+    .status-badge.beklemede { background:#fff8f0; color:#c87941; }
+    .status-badge.iptal { background:#fdf0f0; color:var(--red); }
+    .empty-state { text-align:center; padding:60px; color:var(--text-muted); font-family:'Cormorant Garamond',serif; font-size:20px; font-style:italic; }
+    hr.divider { border:none; border-top:1px solid var(--border); margin:24px 0; }
+
+    /* CAMPAIGN BANNER */
+    .campaign-banner { background:linear-gradient(135deg,#1a1a1a,#2d1a00); padding:20px 40px; display:flex; align-items:center; justify-content:space-between; }
+    .campaign-banner .text { color:white; }
+    .campaign-banner .text h3 { font-family:'Playfair Display',serif; font-size:20px; margin-bottom:4px; }
+    .campaign-banner .text p { font-size:13px; color:rgba(255,255,255,.6); }
+    .coupon-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .coupon-tag { background:rgba(200,169,110,.15); border:1px dashed var(--accent); padding:10px 20px; color:var(--accent); font-family:'Playfair Display',serif; font-size:18px; letter-spacing:2px; cursor:pointer; transition:background .2s; }
+    .coupon-tag:hover { background:rgba(200,169,110,.3); }
+    .coupon-tag small { display:block; font-family:'Lato',sans-serif; font-size:11px; letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <span>Veritabanı Yönetim Sistemleri Dersi Projesi · KTÜ</span>
+  <div class="top-bar-right">
+    <div id="user-info">
+      Hoş geldiniz, <span id="user-name-display"></span>
+      <button class="top-bar-btn" onclick="logout()">Çıkış Yap</button>
+    </div>
+    <div id="auth-btns">
+      <button class="top-bar-btn" onclick="showPage('auth'); setAuthTab('login')">Giriş Yap</button>
+      <button class="top-bar-btn primary" onclick="showPage('auth'); setAuthTab('register')">Hesap Oluştur</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo" onclick="showPage('home')">
+    KTÜ Sanat Galerisi
+    <span>Dijital Koleksiyon Arşivi</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Eser veya sanatçı ara..." oninput="filterEserler()">
+      <button>🔍</button>
+    </div>
+    <button class="cart-icon-btn" onclick="toggleCart()" title="Sepetim">
+      🛒
+      <span class="cart-badge" id="cart-badge">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <ul>
+    <li><a href="#" id="nav-home" class="active" onclick="showPage('home');return false">Ana Sayfa</a></li>
+    <li><a href="#" id="nav-gallery" onclick="showPage('gallery');return false">Sergi Salonu</a></li>
+    <li><a href="#" id="nav-events" onclick="showPage('events');return false">Etkinlikler</a></li>
+    <li><a href="#" id="nav-compare" onclick="showPage('compare');return false">Karşılaştır</a></li>
+    <li><a href="#" id="nav-stats" onclick="showPage('stats');return false">İstatistikler</a></li>
+    <li><a href="#" id="nav-support" onclick="showPage('support');return false">Destek</a></li>
+    <li><a href="#" id="nav-auth" onclick="goAccount();return false">Hesabım</a></li>
+  </ul>
+</nav>
+
+<!-- ══════════════════════════════════════════ HOME PAGE -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="hero-content">
+      <div class="hero-subtitle">Dijital Sanat Koleksiyonu</div>
+      <h1>Sanatın <em>Zamansız</em><br>Güzelliği</h1>
+      <p>Dünyanın en değerli eserlerini dijital ortamda keşfedin. Her tablo, bir hikâye anlatır.</p>
+      <button class="hero-btn" onclick="showPage('gallery')">Koleksiyonu Keşfet</button>
+    </div>
+    <div class="hero-decorative"></div>
+  </div>
+
+  <!-- CAMPAIGN BANNER -->
+  <div class="campaign-banner" id="campaign-banner">
+    <div class="text">
+      <h3>Özel Kampanyalar</h3>
+      <p>Aktif kupon kodlarını kullanarak indirimli satın alım yapın</p>
+    </div>
+    <div class="coupon-row" id="coupon-row"><div class="spinner" style="width:24px;height:24px;border-width:2px;margin:0"></div></div>
+  </div>
+
+  <div class="showcase">
+    <div class="showcase-inner">
+      <div class="showcase-item">
+        <div class="showcase-icon">🖼️</div>
+        <div class="showcase-text">
+          <h3>Seçkin Eserler</h3>
+          <p>Rönesans'tan Modern Sanata kapsamlı koleksiyon</p>
+          <button class="showcase-btn" onclick="showPage('gallery')">Görüntüle</button>
+        </div>
+      </div>
+      <div class="showcase-item">
+        <div class="showcase-icon">🎨</div>
+        <div class="showcase-text">
+          <h3>Atölyeler & Etkinlikler</h3>
+          <p>Sanata katılmak için rezervasyon yapın</p>
+          <button class="showcase-btn" onclick="showPage('events')">Keşfet</button>
+        </div>
+      </div>
+      <div class="showcase-item">
+        <div class="showcase-icon">💎</div>
+        <div class="showcase-text">
+          <h3>Özel Koleksiyon</h3>
+          <p>Nadir eserlere özel erişim imkânı</p>
+          <button class="showcase-btn" onclick="showPage('auth'); setAuthTab('register')">Üye Ol</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:8px">
+      <div>
+        <div class="section-title" style="margin-bottom:4px">Öne Çıkan Eserler <span>Koleksiyon</span></div>
+        <div class="section-subtitle" style="margin-bottom:0">Galerimizden seçkin yapıtlar</div>
+      </div>
+      <select class="filter-select" onchange="sortFeatured(this.value)" style="height:36px">
+        <option value="default">Varsayılan Sıra</option>
+        <option value="price_asc">Fiyat (Artan)</option>
+        <option value="price_desc">Fiyat (Azalan)</option>
+        <option value="rating">En Yüksek Puan</option>
+        <option value="newest">En Yeni</option>
+      </select>
+    </div>
+    <div class="product-grid" id="featured-grid">
+      <div class="loading"><div class="spinner"></div>Eserler yükleniyor...</div>
+    </div>
+  </div>
+
+  <div class="section" style="padding-top:0">
+    <div class="section-title">Yaklaşan Etkinlikler <span>Takvim</span></div>
+    <div class="section-subtitle">Atölye ve sergilerimize katılın</div>
+    <div class="event-grid" id="home-events-grid">
+      <div class="loading"><div class="spinner"></div>Etkinlikler yükleniyor...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ GALLERY PAGE (Madde 1) -->
+<div id="page-gallery" class="page">
+  <div class="section">
+    <div class="section-title">Sergi Salonu <span>Tüm Eserler</span></div>
+    <div class="section-subtitle">Koleksiyonumuzdaki tüm yapıtlar</div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterByCategory(null, this)">Tümü</button>
+      <button class="filter-btn" onclick="filterByCategory('Rönesans', this)">Rönesans</button>
+      <button class="filter-btn" onclick="filterByCategory('Post-Empresyonizm', this)">Post-Empresyonizm</button>
+      <button class="filter-btn" onclick="filterByCategory('Sembolizm', this)">Sembolizm</button>
+      <button class="filter-btn" onclick="filterByCategory('Türk Resim Sanatı', this)">Türk Sanatı</button>
+      <button class="filter-btn" onclick="filterByCategory('Modern Sanat', this)">Modern Sanat</button>
+      <select class="filter-select" onchange="sortEserler(this.value)" style="margin-left:auto">
+        <option value="default">Sıralama</option>
+        <option value="price_asc">Fiyat (Artan)</option>
+        <option value="price_desc">Fiyat (Azalan)</option>
+        <option value="rating">En Yüksek Puan</option>
+      </select>
+    </div>
+    <div class="product-grid" id="gallery-grid">
+      <div class="loading"><div class="spinner"></div>Eserler yükleniyor...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ EVENTS PAGE (Madde 2) -->
+<div id="page-events" class="page">
+  <div class="section">
+    <div class="section-title">Etkinlikler & Atölyeler <span>Takvim</span></div>
+    <div class="section-subtitle">Sanata dokunmak için rezervasyon yapın</div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterEvents(null,this)">Tümü</button>
+      <button class="filter-btn" onclick="filterEvents('atolye',this)">Atölyeler</button>
+      <button class="filter-btn" onclick="filterEvents('sergi',this)">Sergiler</button>
+      <button class="filter-btn" onclick="filterEvents('konferans',this)">Konferanslar</button>
+      <button class="filter-btn" onclick="filterEvents('tur',this)">Turlar</button>
+    </div>
+    <div class="event-grid" id="events-grid">
+      <div class="loading"><div class="spinner"></div>Etkinlikler yükleniyor...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ COMPARE PAGE (Madde 11) -->
+<div id="page-compare" class="page">
+  <div class="section">
+    <div class="section-title">Karşılaştır <span>Analiz</span></div>
+    <div class="section-subtitle">Eser veya etkinlikleri yan yana karşılaştırın</div>
+    <div class="filter-bar" style="margin-bottom:32px">
+      <button class="filter-btn active" onclick="setCompareMode('artworks', this)">Eserler</button>
+      <button class="filter-btn" onclick="setCompareMode('events', this)">Etkinlikler</button>
+    </div>
+    <div id="compare-result">
+      <div class="empty-state">Sergi Salonu'nda eserlerin üzerindeki kutucukları işaretleyin, ardından buraya gelin.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ STATS PAGE (Madde 16) -->
+<div id="page-stats" class="page">
+  <div class="section">
+    <div class="section-title">İstatistikler <span>Raporlama</span></div>
+    <div class="section-subtitle">Eser ve etkinlik bazında özet istatistikler</div>
+    <div class="stat-cards" id="stat-summary">
+      <div class="loading" style="grid-column:1/-1"><div class="spinner"></div>Yükleniyor...</div>
+    </div>
+    <div class="section-title" style="font-size:20px;margin-bottom:20px">Eser Bazında <span>Detay</span></div>
+    <div style="overflow-x:auto">
+      <table class="stat-table" id="stats-artworks-table">
+        <tr><th>Eser</th><th>Sanatçı</th><th>Fiyat</th><th>Görüntülenme</th><th>Favori</th><th>Yorum</th><th>Ort. Puan</th><th>Satış</th></tr>
+      </table>
+    </div>
+    <hr class="divider">
+    <div class="section-title" style="font-size:20px;margin:20px 0">Etkinlik Bazında <span>Detay</span></div>
+    <div style="overflow-x:auto">
+      <table class="stat-table" id="stats-events-table">
+        <tr><th>Etkinlik</th><th>Tarih</th><th>Kapasite</th><th>Rezervasyon</th><th>Doluluk</th><th>Ort. Puan</th></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SUPPORT PAGE (Madde 10) -->
+<div id="page-support" class="page">
+  <div class="section" style="max-width:700px">
+    <div class="section-title">Müşteri Destek <span>İletişim</span></div>
+    <div class="section-subtitle">Sorularınızı bize iletin, en kısa sürede yanıtlayalım.</div>
+    <div class="form-group">
+      <label>Adınız Soyadınız</label>
+      <input type="text" id="support-name" placeholder="Adınız Soyadınız">
+    </div>
+    <div class="form-group">
+      <label>E-posta</label>
+      <input type="email" id="support-email" placeholder="ornek@mail.com">
+    </div>
+    <div class="form-group">
+      <label>Mesajınız</label>
+      <textarea id="support-msg" placeholder="Sorunuzu veya mesajınızı yazın..."></textarea>
+    </div>
+    <button class="form-submit" onclick="destekGonder()">Mesajı Gönder</button>
+    <div id="support-feedback"></div>
+    <hr class="divider">
+    <div id="my-tickets-section" style="display:none">
+      <div class="section-title" style="font-size:18px;margin-bottom:16px">Taleplerim <span>Geçmiş</span></div>
+      <div id="my-tickets"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ AUTH PAGE (Madde 7) -->
+<div id="page-auth" class="page">
+  <div class="auth-section">
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tab-login" onclick="setAuthTab('login')">Giriş Yap</div>
+      <div class="auth-tab" id="tab-register" onclick="setAuthTab('register')">Kayıt Ol</div>
+    </div>
+    <div id="form-login">
+      <div class="form-group"><label>E-posta</label><input type="email" id="login-email" placeholder="ornek@mail.com"></div>
+      <div class="form-group"><label>Şifre</label><input type="password" id="login-pass" placeholder="••••••••"></div>
+      <button class="form-submit" onclick="girisYap()">Giriş Yap</button>
+      <div id="login-msg"></div>
+    </div>
+    <div id="form-register" style="display:none">
+      <div class="form-group"><label>Ad Soyad</label><input type="text" id="reg-name" placeholder="Adınız Soyadınız"></div>
+      <div class="form-group"><label>E-posta</label><input type="email" id="reg-email" placeholder="ornek@mail.com"></div>
+      <div class="form-group"><label>Şifre</label><input type="password" id="reg-pass" placeholder="En az 6 karakter"></div>
+      <button class="form-submit" onclick="kayitOl()">Kayıt Ol</button>
+      <div id="register-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ ACCOUNT PAGE (Madde 3,7,8,9) -->
+<div id="page-account" class="page">
+  <div class="section">
+    <div class="section-title">Hesabım <span>Paneli</span></div>
+    <div class="section-subtitle" id="account-welcome">Hoş geldiniz</div>
+    <div class="account-layout">
+      <div class="account-menu">
+        <div class="account-menu-item active" onclick="showAccountPanel('profile')">👤 Profilim</div>
+        <div class="account-menu-item" onclick="showAccountPanel('orders')">📦 Siparişlerim</div>
+        <div class="account-menu-item" onclick="showAccountPanel('reservations')">📅 Rezervasyonlarım</div>
+        <div class="account-menu-item" onclick="showAccountPanel('favorites')">❤️ Favorilerim</div>
+        <div class="account-menu-item" onclick="showAccountPanel('password')">🔒 Şifre Değiştir</div>
+      </div>
+      <div>
+        <!-- Profil -->
+        <div class="account-panel active" id="panel-profile">
+          <div class="form-group"><label>Ad Soyad</label><input type="text" id="profile-name"></div>
+          <div class="form-group"><label>E-posta</label><input type="email" id="profile-email"></div>
+          <button class="btn-dark" onclick="profilGuncelle()">Kaydet</button>
+          <div id="profile-msg"></div>
+        </div>
+        <!-- Siparişler -->
+        <div class="account-panel" id="panel-orders">
+          <div id="orders-list"><div class="loading"><div class="spinner"></div>Yükleniyor...</div></div>
+        </div>
+        <!-- Rezervasyonlar -->
+        <div class="account-panel" id="panel-reservations">
+          <div id="reservations-list"><div class="loading"><div class="spinner"></div>Yükleniyor...</div></div>
+        </div>
+        <!-- Favoriler -->
+        <div class="account-panel" id="panel-favorites">
+          <div class="product-grid" id="favorites-grid">
+            <div class="loading"><div class="spinner"></div>Yükleniyor...</div>
+          </div>
+        </div>
+        <!-- Şifre -->
+        <div class="account-panel" id="panel-password">
+          <div class="form-group"><label>Mevcut Şifre</label><input type="password" id="old-pass"></div>
+          <div class="form-group"><label>Yeni Şifre</label><input type="password" id="new-pass"></div>
+          <div class="form-group"><label>Yeni Şifre (Tekrar)</label><input type="password" id="new-pass2"></div>
+          <button class="btn-dark" onclick="sifreDegistir()">Şifreyi Değiştir</button>
+          <div id="password-msg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ ADMIN PANELİ (Madde 14,16) -->
+<div id="page-admin" class="page">
+  <div class="section">
+    <div class="section-title">Admin <span>Paneli</span></div>
+    <div class="section-subtitle">KTÜ Sanat Galerisi Yönetim Ekranı</div>
+    <div class="account-layout">
+      <!-- Sol menü -->
+      <div class="account-menu">
+        <div class="account-menu-item active" onclick="showAdminPanel('dashboard')">📊 Genel Bakış</div>
+        <div class="account-menu-item" onclick="showAdminPanel('featured-mgmt')">⭐ Öne Çıkan Eserler</div>
+        <div class="account-menu-item" onclick="showAdminPanel('artworks')">🖼️ Eser Yönetimi</div>
+        <div class="account-menu-item" onclick="showAdminPanel('events-mgmt')">🎨 Etkinlik Yönetimi</div>
+        <div class="account-menu-item" onclick="showAdminPanel('users-mgmt')">👤 Kullanıcılar</div>
+        <div class="account-menu-item" onclick="showAdminPanel('orders-mgmt')">📦 Sipariş Yönetimi</div>
+        <div class="account-menu-item" onclick="showAdminPanel('reviews-mgmt')">💬 Yorumlara Yanıt Ver</div>
+        <div class="account-menu-item" onclick="showAdminPanel('tickets-mgmt')">🎧 Destek Talepleri</div>
+        <div class="account-menu-item" onclick="showAdminPanel('coupons-mgmt')">🏷️ İndirim Kuponları</div>
+      </div>
+      <!-- Sağ içerik -->
+      <div style="flex:1;min-width:0">
+
+        <!-- Dashboard -->
+        <div class="account-panel active" id="admin-panel-dashboard">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px" id="admin-kpi-grid">
+            <div class="loading"><div class="spinner"></div>Yükleniyor...</div>
+          </div>
+          <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">En Çok Satan Eserler</div>
+          <div id="admin-top-artworks"></div>
+          <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin:20px 0 12px">Etkinlik Doluluk Oranları</div>
+          <div id="admin-event-fill"></div>
+        </div>
+
+        <!-- Eser Yönetimi -->
+        <div class="account-panel" id="admin-panel-artworks">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-weight:700;font-size:17px">Eserler</div>
+            <button class="btn-dark" onclick="adminArtworkFormAc()">+ Yeni Eser Ekle</button>
+          </div>
+          <div id="admin-artwork-form" style="display:none;background:var(--cream-light);padding:20px;border-radius:8px;margin-bottom:20px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group"><label>Eser Adı</label><input type="text" id="aw-title" placeholder="Eser adını girin"></div>
+              <div class="form-group"><label>Fiyat (₺)</label><input type="number" id="aw-price" placeholder="0"></div>
+
+              <!-- Sanatçı: mevcut seç veya yeni yaz -->
+              <div class="form-group">
+                <label>Sanatçı</label>
+                <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+                  <select id="aw-artist-select" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:6px" onchange="awArtistSecildi(this)">
+                    <option value="">— Mevcut Sanatçı Seç —</option>
+                  </select>
+                </div>
+                <input type="text" id="aw-artist-name" placeholder="ya da yeni sanatçı adı yazın"
+                  style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;box-sizing:border-box;margin-top:2px">
+                <input type="hidden" id="aw-artist-id">
+                <small style="color:var(--text-muted);font-size:11px">Listeden seçin VEYA kutuya yeni isim yazın</small>
+              </div>
+
+              <!-- Kategori -->
+              <div class="form-group">
+                <label>Kategori</label>
+                <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+                  <select id="aw-cat" style="flex:1;padding:8px;border:1px solid var(--border);border-radius:6px" onchange="awKategoriSecildi(this)">
+                    <option value="">— Mevcut Kategori Seç —</option>
+                  </select>
+                </div>
+                <input type="text" id="aw-cat-name" placeholder="ya da yeni kategori adı yazın"
+                  style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;box-sizing:border-box;margin-top:2px">
+                <input type="hidden" id="aw-cat-id">
+                <small style="color:var(--text-muted);font-size:11px">Listeden seçin VEYA kutuya yeni kategori yazın</small>
+              </div>
+
+              <div class="form-group" style="grid-column:1/-1"><label>Açıklama</label>
+                <textarea id="aw-desc" rows="3" placeholder="Eser hakkında kısa açıklama..."
+                  style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+              </div>
+              <div class="form-group"><label>Yapım Yılı</label><input type="number" id="aw-year" placeholder="örn. 1889" min="1" max="2100"></div>
+              <div class="form-group"><label>Teknik / Malzeme</label><input type="text" id="aw-medium" placeholder="örn. Yağlıboya, Tuval üzerine"></div>
+              <div class="form-group"><label>Boyutlar</label><input type="text" id="aw-dimensions" placeholder="örn. 73×92 cm"></div>
+              <div class="form-group"><label>İndirim %</label><input type="number" id="aw-discount" value="0" min="0" max="100"></div>
+              <div class="form-group"><label>Stok</label><input type="number" id="aw-stock" value="1" min="0"></div>
+
+              <!-- Resim seçimi: dinamik liste + önizleme -->
+              <div class="form-group" style="grid-column:1/-1">
+                <label>Resim (images/ klasöründen)</label>
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <div style="flex:1">
+                    <select id="aw-image" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px" onchange="awResimSecildi(this.value)">
+                      <option value="">— Resim Seçin —</option>
+                    </select>
+                    <small style="color:var(--text-muted);font-size:11px">images/ klasörüne yeni resim eklediyseniz
+                      <a href="#" onclick="adminResimleriYenile();return false" style="color:var(--accent)">🔄 Listeyi Yenile</a>
+                    </small>
+                  </div>
+                  <div id="aw-img-preview" style="display:none;flex-shrink:0">
+                    <img id="aw-preview-img" src="" alt="Önizleme"
+                      style="height:80px;width:80px;object-fit:cover;border-radius:6px;border:2px solid var(--accent)">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <button class="btn-dark" onclick="adminEserKaydet()">💾 Kaydet</button>
+              <button class="btn-outline" onclick="$('admin-artwork-form').style.display='none'">İptal</button>
+            </div>
+            <div id="aw-msg" style="margin-top:8px"></div>
+          </div>
+          <div id="admin-artworks-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Etkinlik Yönetimi -->
+        <div class="account-panel" id="admin-panel-events-mgmt">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-weight:700;font-size:17px">Etkinlikler</div>
+            <button class="btn-dark" onclick="adminEventFormAc()">+ Yeni Etkinlik Ekle</button>
+          </div>
+          <div id="admin-event-form" style="display:none;background:var(--cream-light);padding:20px;border-radius:8px;margin-bottom:20px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group"><label>Başlık</label><input type="text" id="ev-title" placeholder="Etkinlik adını girin"></div>
+              <div class="form-group"><label>Tür</label>
+                <select id="ev-type" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px">
+                  <option value="atolye">Atölye</option><option value="sergi">Sergi</option>
+                  <option value="konferans">Konferans</option><option value="tur">Tur</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Tarih</label><input type="datetime-local" id="ev-date"></div>
+              <div class="form-group"><label>Kapasite</label><input type="number" id="ev-cap" placeholder="50"></div>
+              <div class="form-group"><label>Fiyat (₺)</label><input type="number" id="ev-price" value="0"></div>
+              <div class="form-group"><label>Konum</label><input type="text" id="ev-loc" placeholder="Galeri adresi veya online"></div>
+              <div class="form-group" style="grid-column:1/-1"><label>Açıklama</label>
+                <textarea id="ev-desc" rows="3" placeholder="Etkinlik hakkında kısa açıklama..."
+                  style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+              </div>
+              <!-- Resim seçimi -->
+              <div class="form-group" style="grid-column:1/-1">
+                <label>Resim (images/ klasöründen)</label>
+                <div style="display:flex;gap:10px;align-items:flex-start">
+                  <div style="flex:1">
+                    <select id="ev-image" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px" onchange="evResimSecildi(this.value)">
+                      <option value="">— Resim Seçin —</option>
+                    </select>
+                    <small style="color:var(--text-muted);font-size:11px">images/ klasörüne yeni resim eklediyseniz
+                      <a href="#" onclick="adminEtkinlikResimleriYenile();return false" style="color:var(--accent)">🔄 Listeyi Yenile</a>
+                    </small>
+                  </div>
+                  <div id="ev-img-preview" style="display:none;flex-shrink:0">
+                    <img id="ev-preview-img" src="" alt="Önizleme"
+                      style="height:80px;width:80px;object-fit:cover;border-radius:6px;border:2px solid var(--accent)">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <button class="btn-dark" onclick="adminEtkinlikKaydet()">💾 Kaydet</button>
+              <button class="btn-outline" onclick="$('admin-event-form').style.display='none'">İptal</button>
+            </div>
+            <div id="ev-msg" style="margin-top:8px"></div>
+          </div>
+          <div id="admin-events-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Kullanıcılar -->
+        <div class="account-panel" id="admin-panel-users-mgmt">
+          <div style="font-weight:700;font-size:17px;margin-bottom:16px">Kullanıcı Listesi</div>
+          <div id="admin-users-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Sipariş Yönetimi -->
+        <div class="account-panel" id="admin-panel-orders-mgmt">
+          <div style="font-weight:700;font-size:17px;margin-bottom:16px">Tüm Siparişler</div>
+          <div id="admin-orders-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Yorumlara Yanıt Ver (Madde 14) -->
+        <div class="account-panel" id="admin-panel-reviews-mgmt">
+          <div style="font-weight:700;font-size:17px;margin-bottom:4px">Yorumlara Yanıt Ver</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Madde 14 — Galeri yöneticisi yanıtları</div>
+          <div id="admin-reviews-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Destek Talepleri -->
+        <div class="account-panel" id="admin-panel-tickets-mgmt">
+          <div style="font-weight:700;font-size:17px;margin-bottom:16px">Destek Talepleri</div>
+          <div id="admin-tickets-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Öne Çıkan Eserler Yönetimi -->
+        <div class="account-panel" id="admin-panel-featured-mgmt">
+          <div style="font-weight:700;font-size:17px;margin-bottom:4px">⭐ Öne Çıkan Eserler</div>
+          <div style="color:var(--text-muted);font-size:13px;margin-bottom:16px">Ana sayfada gösterilecek 8 eseri seçin. İşaretlediğiniz eserler öne çıkan bölümünde görünür.</div>
+          <div id="admin-featured-list"><div class="loading"><div class="spinner"></div></div></div>
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <button class="btn-dark" onclick="adminFeaturedKaydet()">💾 Değişiklikleri Kaydet</button>
+            <span id="featured-save-msg" style="font-size:13px;color:var(--accent);align-self:center"></span>
+          </div>
+        </div>
+
+        <!-- Kupon Yönetimi -->
+        <div class="account-panel" id="admin-panel-coupons-mgmt">
+          <div style="font-weight:700;font-size:17px;margin-bottom:16px">İndirim Kuponları</div>
+          <div id="admin-coupons-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-grid">
+      <img class="modal-img" id="modal-img" src="" alt="" onerror="this.src='https://via.placeholder.com/400x400/f0ebe4/9a9090?text=🖼️'">
+      <div class="modal-body">
+        <div class="modal-artist" id="modal-artist"></div>
+        <div class="modal-title" id="modal-title"></div>
+        <div class="modal-meta" id="modal-meta"></div>
+        <div class="modal-price" id="modal-price"></div>
+        <div class="modal-desc" id="modal-desc"></div>
+        <div class="modal-actions">
+          <button class="btn-dark" id="modal-buy-btn" onclick="modalSepeteEkle()">🛒 Sepete Ekle</button>
+          <button class="btn-outline" id="modal-fav-btn" onclick="modalFavoriToggle()">♡ Favorilere Ekle</button>
+          <button class="btn-outline" id="modal-compare-btn" onclick="modalCompareToggle()">⚖ Karşılaştır</button>
+        </div>
+        <div class="modal-tabs">
+          <div class="modal-tab active" onclick="switchModalTab('reviews',this)">Yorumlar</div>
+          <div class="modal-tab" onclick="switchModalTab('writeReview',this)">Yorum Yap</div>
+          <div class="modal-tab" onclick="switchModalTab('stats',this)">Puan Dağılımı</div>
+        </div>
+        <div class="modal-tab-content active" id="modal-tab-reviews"></div>
+        <div class="modal-tab-content" id="modal-tab-writeReview">
+          <div id="review-auth-warning" style="display:none" class="form-msg error">Yorum yapabilmek için giriş yapmalısınız.</div>
+          <div id="review-form-inner">
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Puanınız:</p>
+            <div class="star-input">
+              <input type="radio" name="star" id="s5" value="5"><label for="s5">★</label>
+              <input type="radio" name="star" id="s4" value="4"><label for="s4">★</label>
+              <input type="radio" name="star" id="s3" value="3"><label for="s3">★</label>
+              <input type="radio" name="star" id="s2" value="2"><label for="s2">★</label>
+              <input type="radio" name="star" id="s1" value="1"><label for="s1">★</label>
+            </div>
+            <div class="form-group">
+              <label>Yorumunuz</label>
+              <textarea id="review-comment" placeholder="Bu eser hakkında düşüncelerinizi paylaşın..." style="min-height:80px"></textarea>
+            </div>
+            <button class="btn-dark" onclick="yorumGonder()">Yorumu Gönder</button>
+            <div id="review-msg"></div>
+          </div>
+        </div>
+        <div class="modal-tab-content" id="modal-tab-stats"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESERVATION MODAL -->
+<div class="modal-bg" id="res-modal-bg" onclick="closeResModal(event)">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-close" onclick="closeResModal()">✕</button>
+    <div style="padding:40px">
+      <div class="section-title" style="font-size:20px;margin-bottom:20px">Rezervasyon <span id="res-event-title"></span></div>
+      <div class="form-group">
+        <label>Tarih</label>
+        <input type="date" id="res-date">
+      </div>
+      <div class="form-group">
+        <label>Katılımcı Sayısı</label>
+        <input type="number" id="res-count" value="1" min="1">
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px">Toplam: <strong id="res-total"></strong></p>
+      <button class="form-submit" onclick="rezervasyonOlustur()">Rezervasyonu Tamamla</button>
+      <div id="res-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+<div class="cart-sidebar" id="cart-sidebar">
+  <div class="cart-sidebar-header">
+    <h3>🛒 Sepetim</h3>
+    <button onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items-list">
+    <div class="empty-state" style="padding:40px 20px">Sepetiniz boş.</div>
+  </div>
+  <div class="cart-footer">
+    <div id="cart-coupon-row" style="margin-bottom:12px">
+      <div style="display:flex;gap:8px">
+        <input type="text" id="cart-coupon" placeholder="Kupon kodu..." style="flex:1;padding:8px 12px;border:1px solid var(--border);font-size:13px;font-family:'Lato',sans-serif;outline:none">
+        <button class="btn-outline" style="padding:8px 14px;font-size:11px" onclick="sepetKuponUygula()">Uygula</button>
+      </div>
+      <div id="cart-coupon-result" style="margin-top:4px;font-size:12px"></div>
+    </div>
+    <div class="cart-total-row">
+      <span class="cart-total-label">Toplam</span>
+      <span class="cart-total-price" id="cart-total">0 ₺</span>
+    </div>
+    <button class="form-submit" onclick="checkoutBaslat()" id="cart-checkout-btn" disabled>Ödemeye Geç →</button>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL - ÇOK ADIMLI ÖDEME -->
+<div class="modal-bg" id="checkout-modal-bg" onclick="closeCheckoutModal(event)">
+  <div class="modal" style="max-width:540px">
+    <button class="modal-close" onclick="closeCheckoutModal()">✕</button>
+    <div style="padding:36px">
+      <div class="section-title" style="font-size:22px;margin-bottom:6px">Ödeme <span>İşlemi</span></div>
+
+      <!-- Adım göstergesi -->
+      <div class="step-indicator" id="step-indicator">
+        <div class="step-dot active" id="stepdot-1">
+          <div class="step-dot-inner">1</div>
+          <span class="step-dot-label">Ödeme Yöntemi</span>
+        </div>
+        <div class="step-dot" id="stepdot-2">
+          <div class="step-dot-inner">2</div>
+          <span class="step-dot-label">Bilgiler</span>
+        </div>
+        <div class="step-dot" id="stepdot-3">
+          <div class="step-dot-inner">3</div>
+          <span class="step-dot-label">Onay</span>
+        </div>
+        <div class="step-dot" id="stepdot-4">
+          <div class="step-dot-inner">4</div>
+          <span class="step-dot-label">Tamamlandı</span>
+        </div>
+      </div>
+
+      <!-- ADIM 1: Ödeme Yöntemi Seçimi -->
+      <div class="checkout-step active" id="checkout-step-1">
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Ödeme yöntemini seçin:</p>
+        <div class="payment-method-cards">
+          <div class="pay-card selected" id="pay-kredi" onclick="selectPayMethod('kredi_karti')">
+            <span class="pay-card-icon">💳</span>
+            <span class="pay-card-label">Kredi / Banka Kartı</span>
+          </div>
+          <div class="pay-card" id="pay-havale" onclick="selectPayMethod('banka_havalesi')">
+            <span class="pay-card-icon">🏦</span>
+            <span class="pay-card-label">Banka Havalesi</span>
+          </div>
+          <div class="pay-card" id="pay-kapida" onclick="selectPayMethod('kapida_odeme')">
+            <span class="pay-card-icon">🚪</span>
+            <span class="pay-card-label">Kapıda Ödeme</span>
+          </div>
+        </div>
+        <hr class="divider">
+        <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:20px">
+          <span>Toplam Tutar:</span>
+          <strong id="co-total-1" style="color:var(--accent-dark);font-family:'Playfair Display',serif;font-size:20px"></strong>
+        </div>
+        <button class="form-submit" onclick="checkoutStep(2)">Devam Et →</button>
+      </div>
+
+      <!-- ADIM 2: Ödeme Bilgileri -->
+      <div class="checkout-step" id="checkout-step-2">
+        <!-- Kredi Kartı formu -->
+        <div id="form-kredi_karti">
+          <div class="form-group">
+            <label>Kart Üzerindeki İsim</label>
+            <input type="text" id="cc-name" placeholder="AD SOYAD" style="text-transform:uppercase">
+          </div>
+          <div class="form-group">
+            <label>Kart Numarası</label>
+            <input type="text" id="cc-number" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCardNumber(this)">
+          </div>
+          <div class="card-input-group">
+            <div class="form-group">
+              <label>Son Kullanma Tarihi</label>
+              <input type="text" id="cc-exp" placeholder="AA/YY" maxlength="5" oninput="formatExpiry(this)">
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="text" id="cc-cvv" placeholder="•••" maxlength="3">
+            </div>
+          </div>
+        </div>
+        <!-- Banka Havalesi formu -->
+        <div id="form-banka_havalesi" style="display:none">
+          <div style="background:var(--cream);border:1px solid var(--border);padding:20px;margin-bottom:16px">
+            <div style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:12px">Hesap Bilgileri</div>
+            <div style="font-size:14px;color:var(--text-mid);line-height:2">
+              <b>Banka:</b> Türkiye İş Bankası<br>
+              <b>Hesap Sahibi:</b> KTÜ Sanat Galerisi<br>
+              <b>IBAN:</b> TR12 0006 4000 0011 2345 6789 00<br>
+              <b>Açıklama:</b> <span id="havale-aciklama" style="color:var(--accent);font-weight:700"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Gönderen Adı</label>
+            <input type="text" id="havale-name" placeholder="Havale yapan kişinin adı">
+          </div>
+        </div>
+        <!-- Kapıda Ödeme formu -->
+        <div id="form-kapida_odeme" style="display:none">
+          <div style="background:#fff8f0;border:1px solid #f0c080;padding:20px;margin-bottom:16px;border-left:4px solid var(--accent)">
+            <b style="display:block;margin-bottom:8px">📦 Kapıda Ödeme Bilgisi</b>
+            <p style="font-size:14px;color:var(--text-mid);line-height:1.7">Siparişiniz kargoya verildiğinde ödeme yapabilirsiniz. Kargo tesliminde nakit veya POS ile ödeme kabul edilmektedir.</p>
+          </div>
+          <div class="form-group">
+            <label>Teslimat Adresi</label>
+            <textarea id="kapida-adres" placeholder="Teslimat adresinizi girin..." style="min-height:80px;width:100%;padding:11px 14px;border:1px solid var(--border);font-family:'Lato',sans-serif;font-size:14px;outline:none;resize:vertical"></textarea>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="btn-outline" onclick="checkoutStep(1)" style="flex:1">← Geri</button>
+          <button class="form-submit" onclick="checkoutStep(3)" style="flex:2">Devam Et →</button>
+        </div>
+      </div>
+
+      <!-- ADIM 3: Sipariş Onayı -->
+      <div class="checkout-step" id="checkout-step-3">
+        <div style="background:var(--cream);border:1px solid var(--border);padding:18px;margin-bottom:16px">
+          <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Sipariş Özeti</div>
+          <div id="co-order-summary"></div>
+          <hr class="divider" style="margin:12px 0">
+          <div style="display:flex;justify-content:space-between;font-size:15px">
+            <span>Toplam:</span>
+            <strong id="co-total-3" style="color:var(--accent-dark);font-family:'Playfair Display',serif;font-size:20px"></strong>
+          </div>
+        </div>
+        <div style="background:#f0f8ff;border:1px solid #c0d8f0;padding:14px;margin-bottom:20px;font-size:13px;color:#336">
+          ✅ Ödeme yönteminiz: <strong id="co-pay-method-text"></strong>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-outline" onclick="checkoutStep(2)" style="flex:1">← Geri</button>
+          <button class="form-submit" onclick="odemeOnayla()" style="flex:2" id="co-confirm-btn">Siparişi Onayla ✓</button>
+        </div>
+        <div id="co-confirm-msg"></div>
+      </div>
+
+      <!-- ADIM 4: Tamamlandı + Kargo Durumu -->
+      <div class="checkout-step" id="checkout-step-4">
+        <div style="text-align:center;padding:10px 0 20px">
+          <div class="order-success-icon">✓</div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:8px">Siparişiniz Alındı!</h3>
+          <p style="font-size:14px;color:var(--text-muted)">Sipariş No: <strong id="co-order-id" style="color:var(--accent-dark)">#</strong></p>
+        </div>
+        <div class="order-steps">
+          <div class="order-step-row">
+            <div class="order-step-num" style="background:var(--green)">✓</div>
+            <div class="order-step-text"><b>Sipariş Alındı</b>Siparişiniz sistemimize kaydedildi.</div>
+          </div>
+          <div class="order-step-row">
+            <div class="order-step-num" style="background:var(--accent)">2</div>
+            <div class="order-step-text"><b>Ödeme Onayı</b>Ödemeniz kontrol ediliyor.</div>
+          </div>
+          <div class="order-step-row" id="co-step-kargo">
+            <div class="order-step-num" style="background:var(--border);color:var(--text-muted)">3</div>
+            <div class="order-step-text"><b>Kargoya Verilecek</b>Sipariş hazırlanıp kargoya teslim edilecek.</div>
+          </div>
+          <div class="order-step-row" id="co-step-teslim">
+            <div class="order-step-num" style="background:var(--border);color:var(--text-muted)">4</div>
+            <div class="order-step-text"><b>Teslimat</b>Siparişiniz adresinize teslim edilecek.</div>
+          </div>
+        </div>
+        <button class="form-submit" style="margin-top:20px" onclick="closeCheckoutModal();showPage('account');showAccountPanel('orders')">Siparişlerimi Görüntüle</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EVENT DETAIL MODAL -->
+<div class="modal-bg" id="event-modal-bg" onclick="closeEventModal(event)">
+  <div class="modal event-detail-modal">
+    <button class="modal-close" onclick="closeEventModal()">✕</button>
+    <img class="event-detail-img" id="event-modal-img" src="" alt="" onerror="this.style.display='none'">
+    <div class="event-detail-body">
+      <div class="event-type" id="event-modal-type"></div>
+      <div class="modal-title" id="event-modal-title" style="font-size:26px;margin-bottom:12px"></div>
+      <div class="event-detail-grid" id="event-modal-grid"></div>
+      <p id="event-modal-desc" style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text-mid);line-height:1.7;margin-bottom:20px"></p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="event-price" id="event-modal-price" style="font-size:22px;flex:1"></div>
+        <button class="btn-outline" onclick="addEventToCart(currentEvent)">🛒 Sepete Ekle</button>
+        <button class="btn-dark" onclick="openResModalFromEvent()">📅 Rezervasyon Yap</button>
+      </div>
+      <div id="event-modal-capacity-bar" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:6px">
+          <span>Kontenjan Doluluk Oranı</span>
+          <span id="event-modal-cap-text"></span>
+        </div>
+        <div class="capacity-bar" style="height:8px"><div class="capacity-fill" id="event-modal-cap-fill"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE BAR -->
+<div class="compare-bar" id="compare-bar">
+  <div>
+    <span style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.6)">Karşılaştırma Listesi</span>
+    <div class="compare-items" id="compare-items"></div>
+  </div>
+  <div class="compare-actions">
+    <button class="compare-go-btn" onclick="goCompare()">Karşılaştır</button>
+    <button class="compare-clear-btn" onclick="clearCompare()">Temizle</button>
+  </div>
+</div>
+
+<!-- CHAT WIDGET (Madde 10) -->
+<div class="chat-widget" id="chat-widget">
+  <div class="chat-header">
+    <span>💬 Canlı Destek</span>
+    <button onclick="toggleChat()" style="background:none;border:none;color:white;cursor:pointer;font-size:18px">✕</button>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="chat-msg bot">Merhaba! KTÜ Sanat Galerisi'ne hoş geldiniz. Size nasıl yardımcı olabilirim?</div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." onkeydown="if(event.key==='Enter')sendChat()">
+    <button onclick="sendChat()">➤</button>
+  </div>
+</div>
+<button class="chat-toggle" onclick="toggleChat()">💬</button>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-col">
+      <h4>Galeri</h4>
+      <ul>
+        <li><a onclick="showPage('home')">Ana Sayfa</a></li>
+        <li><a onclick="showPage('gallery')">Sergi Salonu</a></li>
+        <li><a onclick="showPage('events')">Etkinlikler</a></li>
+        <li><a onclick="showPage('stats')">İstatistikler</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Koleksiyonlar</h4>
+      <ul>
+        <li><a>Rönesans</a></li>
+        <li><a>Empresyonizm</a></li>
+        <li><a>Modern Sanat</a></li>
+        <li><a>Türk Resim Sanatı</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Hesabım</h4>
+      <ul>
+        <li><a onclick="showPage('auth');setAuthTab('login')">Giriş Yap</a></li>
+        <li><a onclick="showPage('auth');setAuthTab('register')">Kayıt Ol</a></li>
+        <li><a onclick="goAccount();showAccountPanel('orders')">Siparişlerim</a></li>
+        <li><a onclick="goAccount();showAccountPanel('favorites')">Favorilerim</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>İletişim</h4>
+      <ul>
+        <li><a onclick="showPage('support')">Destek Formu</a></li>
+        <li><a onclick="toggleChat()">Canlı Destek</a></li>
+        <li><a>Instagram</a></li>
+        <li><a>Twitter</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2024 KTÜ Sanat Galerisi · Veritabanı Yönetim Sistemleri Projesi</div>
+</footer>
+
+<script>
+const API = 'http://localhost:8000';
+let allEserler = [], allEvents = [], currentEser = null, currentEvent = null;
+let compareList = [], compareMode = 'artworks';
+let currentUser = null;
+
+// ── OTURUM KALICILIĞI ─────────────────────────────────────────
+function saveSession() {
+  if (currentUser) localStorage.setItem('sanat_currentUser', JSON.stringify(currentUser));
+  else localStorage.removeItem('sanat_currentUser');
+}
+function loadSession() {
+  try {
+    const saved = localStorage.getItem('sanat_currentUser');
+    if (saved) { currentUser = JSON.parse(saved); return true; }
+  } catch { localStorage.removeItem('sanat_currentUser'); }
+  return false;
+}
+
+// ── UTILITY ──────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function stars(n) { return '★'.repeat(Math.round(n)) + '☆'.repeat(5-Math.round(n)); }
+function fmtPrice(p) { return Number(p).toLocaleString('tr-TR') + ' ₺'; }
+function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('tr-TR', {day:'numeric',month:'long',year:'numeric'}); }
+let notifTimer;
+function showNotif(text, type='') {
+  const n = $('notif');
+  n.textContent = text;
+  n.style.borderLeftColor = type === 'error' ? 'var(--red)' : 'var(--accent)';
+  n.classList.add('show');
+  clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => n.classList.remove('show'), 3200);
+}
+
+// ── SAYFA YÖNETİMİ ───────────────────────────────────────────
+const PAGES = ['home','gallery','events','compare','stats','support','auth','account','admin'];
+function showPage(page) {
+  PAGES.forEach(p => {
+    const el = $('page-'+p); if (el) el.classList.remove('active');
+    const nav = $('nav-'+p); if (nav) nav.classList.remove('active');
+  });
+  const el = $('page-'+page); if (el) el.classList.add('active');
+  const nav = $('nav-'+page); if (nav) nav.classList.add('active');
+  window.scrollTo(0,0);
+  if (page === 'gallery' && !allEserler.length) loadEserler();
+  if (page === 'events' && !allEvents.length) loadEvents();
+  if (page === 'stats') loadStats();
+  if (page === 'account' && currentUser) loadAccountData();
+  if (page === 'compare') renderCompareTable();
+  if (page === 'admin' && currentUser?.role === 'admin') loadAdminDashboard();
+}
+function goAccount() {
+  if (!currentUser) { showPage('auth'); setAuthTab('login'); }
+  else if (currentUser.role === 'admin') { showPage('admin'); loadAdminDashboard(); }
+  else showPage('account');
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+function setAuthTab(tab) {
+  $('form-login').style.display = tab==='login' ? 'block':'none';
+  $('form-register').style.display = tab==='register' ? 'block':'none';
+  $('tab-login').classList.toggle('active', tab==='login');
+  $('tab-register').classList.toggle('active', tab==='register');
+}
+async function kayitOl() {
+  const name=$('reg-name').value.trim(), email=$('reg-email').value.trim(), pass=$('reg-pass').value;
+  const msg=$('register-msg');
+  if (!name||!email||!pass) { msg.innerHTML='<div class="form-msg error">Tüm alanları doldurun.</div>'; return; }
+  try {
+    const r = await fetch(`${API}/kayit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({full_name:name,email,password:pass})});
+    if (r.ok) { msg.innerHTML='<div class="form-msg success">✓ Kayıt başarılı! Giriş yapabilirsiniz.</div>'; $('reg-name').value=$('reg-email').value=$('reg-pass').value=''; }
+    else { const d=await r.json(); msg.innerHTML=`<div class="form-msg error">${d.detail||'Hata oluştu.'}</div>`; }
+  } catch { msg.innerHTML='<div class="form-msg error">Sunucuya bağlanılamadı.</div>'; }
+}
+async function girisYap() {
+  const email=$('login-email').value.trim(), pass=$('login-pass').value;
+  const msg=$('login-msg');
+  if (!email||!pass) { msg.innerHTML='<div class="form-msg error">E-posta ve şifre giriniz.</div>'; return; }
+  try {
+    const r = await fetch(`${API}/giris`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    if (r.ok) {
+      const d = await r.json(); currentUser = d.user;
+      saveSession();
+      setLoggedIn(true);
+      msg.innerHTML='<div class="form-msg success">✓ Giriş başarılı!</div>';
+      setTimeout(() => {
+        if (currentUser.role === 'admin') { showPage('admin'); }
+        else { showPage('account'); }
+      }, 800);
+    } else { const d=await r.json(); msg.innerHTML=`<div class="form-msg error">${d.detail||'Hatalı giriş.'}</div>`; }
+  } catch { msg.innerHTML='<div class="form-msg error">Sunucuya bağlanılamadı.</div>'; }
+}
+function logout() {
+  currentUser = null; saveSession(); setLoggedIn(false); showPage('home'); showNotif('Çıkış yapıldı.');
+}
+
+// ── ADMIN PANELİ ──────────────────────────────────────────────
+function showAdminPanel(name) {
+  document.querySelectorAll('#page-admin .account-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#page-admin .account-menu-item').forEach(i => i.classList.remove('active'));
+  const panel = $('admin-panel-'+name);
+  if (panel) panel.classList.add('active');
+  event.target.classList.add('active');
+  // Lazy load panele göre
+  if (name === 'artworks')    loadAdminArtworks();
+  if (name === 'events-mgmt') loadAdminEvents();
+  if (name === 'users-mgmt')  loadAdminUsers();
+  if (name === 'orders-mgmt') loadAdminOrders();
+  if (name === 'reviews-mgmt')loadAdminReviews();
+  if (name === 'tickets-mgmt')loadAdminTickets();
+  if (name === 'coupons-mgmt')loadAdminCoupons();
+  if (name === 'featured-mgmt')loadAdminFeatured();
+}
+
+async function loadAdminDashboard() {
+  $('admin-kpi-grid').innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+  try {
+    const r = await fetch(`${API}/istatistik`);
+    const d = await r.json();
+    const totalSatis = d.eserler.reduce((s,e)=>s+e.sale_count,0);
+    const totalYorum = d.eserler.reduce((s,e)=>s+e.review_count,0);
+    const kpis = [
+      {label:'Toplam Kullanıcı', val: d.toplam_kullanici, icon:'👤'},
+      {label:'Toplam Ciro',      val: fmtPrice(d.toplam_ciro), icon:'💰'},
+      {label:'Eser Satışı',      val: totalSatis, icon:'🖼️'},
+      {label:'Toplam Yorum',     val: totalYorum, icon:'💬'},
+    ];
+    $('admin-kpi-grid').innerHTML = kpis.map(k=>`
+      <div style="background:var(--cream-light);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:28px">${k.icon}</div>
+        <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;color:var(--accent-dark);margin:6px 0">${k.val}</div>
+        <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted)">${k.label}</div>
+      </div>`).join('');
+    $('admin-top-artworks').innerHTML = d.eserler.slice(0,5).map(a=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-light);font-size:14px">
+        <span>${a.title}</span>
+        <span style="display:flex;gap:16px;color:var(--text-muted)">
+          <span>👁 ${a.view_count}</span><span>❤️ ${a.favorite_count}</span><span>🛒 ${a.sale_count}</span>
+        </span>
+      </div>`).join('');
+    $('admin-event-fill').innerHTML = d.etkinlikler.slice(0,6).map(e=>{
+      const pct = e.capacity>0 ? Math.min(100, Math.round((e.total_participants/e.capacity)*100)) : 0;
+      return `<div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>${e.title}</span><span style="color:var(--text-muted)">${pct}%</span>
+        </div>
+        <div style="background:var(--border);border-radius:4px;height:8px">
+          <div style="background:var(--accent);height:8px;border-radius:4px;width:${pct}%"></div>
+        </div>
+      </div>`;}).join('');
+  } catch { $('admin-kpi-grid').innerHTML = '<p style="color:red">Veri yüklenemedi.</p>'; }
+}
+
+// ─── ADMIN CRUD HELPERS ──────────────────────────────────────────────
+async function adminSil(endpoint, onay, reloadFn) {
+  if (!confirm(onay)) return;
+  try {
+    const r = await fetch(`${API}/${endpoint}`, {method:'DELETE'});
+    const d = await r.json();
+    showNotif(d.mesaj || 'Silindi.');
+    reloadFn();
+  } catch { showNotif('Bağlantı hatası!'); }
+}
+async function adminDurumGuncelle(endpoint, status, reloadFn) {
+  try {
+    const r = await fetch(`${API}/${endpoint}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status})});
+    const d = await r.json();
+    showNotif(d.mesaj || 'Güncellendi.');
+    reloadFn();
+  } catch { showNotif('Bağlantı hatası!'); }
+}
+
+async function loadAdminArtworks() {
+  $('admin-artworks-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const r = await fetch(`${API}/eserler`);
+  const data = await r.json();
+  $('admin-artworks-list').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:8px">Resim</th><th style="text-align:left;padding:8px">Eser / Sanatçı</th>
+      <th style="text-align:left;padding:8px">Fiyat</th><th style="text-align:left;padding:8px">Stok</th>
+      <th style="text-align:left;padding:8px">İndirim</th><th style="text-align:left;padding:8px">İşlemler</th>
+    </tr></thead><tbody>
+    ${data.map(a=>`<tr style="border-bottom:1px solid var(--border-light)">
+      <td style="padding:8px">
+        ${a.image_url ? `<img src="images/${a.image_url}" alt="${a.title}" style="width:48px;height:48px;object-fit:cover;border-radius:4px;border:1px solid var(--border)" onerror="this.style.display='none'">` : '<span style="font-size:20px">🖼️</span>'}
+      </td>
+      <td style="padding:8px"><b>${a.title}</b><br><span style="color:var(--text-muted)">${a.artist_name||'—'}</span></td>
+      <td style="padding:8px">${fmtPrice(a.price)}</td>
+      <td style="padding:8px">${a.stock}</td>
+      <td style="padding:8px">${a.discount_percent>0?`<span style="color:var(--green)">%${a.discount_percent}</span>`:'—'}</td>
+      <td style="padding:8px">
+        <button onclick="adminEserDuzenle(${a.id},'${a.title.replace(/'/g,"\\'")}',${a.price},${a.discount_percent},${a.stock})"
+          style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--cream-light);margin-right:4px">✏️ Düzenle</button>
+        <button onclick="adminSil('admin/eser-sil/${a.id}','«${a.title}» silinsin mi?',loadAdminArtworks)"
+          style="font-size:11px;padding:3px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+function adminEserDuzenle(id, title, price, discount, stock) {
+  const yeni_fiyat = prompt(`"${title}" için yeni fiyat (mevcut: ${price} ₺):`, price);
+  if (yeni_fiyat === null) return;
+  const yeni_indirim = prompt('Yeni indirim oranı % (0-100):', discount);
+  if (yeni_indirim === null) return;
+  const yeni_stok = prompt('Yeni stok adedi:', stock);
+  if (yeni_stok === null) return;
+  fetch(`${API}/admin/eser-guncelle/${id}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({price: parseFloat(yeni_fiyat)||price, discount_percent: parseInt(yeni_indirim)||0, stock: parseInt(yeni_stok)||1})
+  }).then(r=>r.json()).then(d=>{ showNotif(d.mesaj||'Güncellendi.'); loadAdminArtworks(); }).catch(()=>showNotif('Hata!'));
+}
+
+async function loadAdminEvents() {
+  $('admin-events-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  const r = await fetch(`${API}/etkinlikler`);
+  const data = await r.json();
+  $('admin-events-list').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:8px">Etkinlik</th><th style="text-align:left;padding:8px">Tarih</th>
+      <th style="text-align:left;padding:8px">Kapasite</th><th style="text-align:left;padding:8px">Rezervasyon</th>
+      <th style="text-align:left;padding:8px">İşlemler</th>
+    </tr></thead><tbody>
+    ${data.map(e=>`<tr style="border-bottom:1px solid var(--border-light)">
+      <td style="padding:8px"><b>${e.title}</b></td>
+      <td style="padding:8px;color:var(--text-muted)">${new Date(e.event_date).toLocaleDateString('tr-TR')}</td>
+      <td style="padding:8px">${e.capacity}</td>
+      <td style="padding:8px">${e.reserved_count}</td>
+      <td style="padding:8px">
+        <button onclick="adminEtkinlikDuzenle(${e.id},'${e.title.replace(/'/g,"\\'")}',${e.capacity},${e.price})"
+          style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--cream-light);margin-right:4px">✏️ Düzenle</button>
+        <button onclick="adminSil('admin/etkinlik-sil/${e.id}','«${e.title}» etkinliği silinsin mi?',loadAdminEvents)"
+          style="font-size:11px;padding:3px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+function adminEtkinlikDuzenle(id, title, capacity, price) {
+  const yeni_kapasite = prompt(`"${title}" için yeni kapasite (mevcut: ${capacity}):`, capacity);
+  if (yeni_kapasite === null) return;
+  const yeni_fiyat = prompt('Yeni fiyat (₺):', price);
+  if (yeni_fiyat === null) return;
+  fetch(`${API}/admin/etkinlik-guncelle/${id}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({capacity: parseInt(yeni_kapasite)||capacity, price: parseFloat(yeni_fiyat)||price})
+  }).then(r=>r.json()).then(d=>{ showNotif(d.mesaj||'Güncellendi.'); loadAdminEvents(); }).catch(()=>showNotif('Hata!'));
+}
+
+async function loadAdminUsers() {
+  $('admin-users-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const r = await fetch(`${API}/admin/kullanicilar`);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    $('admin-users-list').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:2px solid var(--border)">
+        <th style="text-align:left;padding:8px">ID</th><th style="text-align:left;padding:8px">Ad Soyad</th>
+        <th style="text-align:left;padding:8px">E-posta</th><th style="text-align:left;padding:8px">Rol</th>
+        <th style="text-align:left;padding:8px">Kayıt</th><th style="text-align:left;padding:8px">İşlemler</th>
+      </tr></thead><tbody>
+      ${data.map(u=>`<tr style="border-bottom:1px solid var(--border-light)">
+        <td style="padding:8px;color:var(--text-muted)">#${u.id}</td>
+        <td style="padding:8px">${u.full_name}</td>
+        <td style="padding:8px">${u.email}</td>
+        <td style="padding:8px"><span style="background:${u.role==='admin'?'var(--accent)':'var(--border)'};color:${u.role==='admin'?'white':'var(--text-mid)'};padding:2px 8px;border-radius:12px;font-size:11px">${u.role}</span></td>
+        <td style="padding:8px;color:var(--text-muted)">${new Date(u.created_at).toLocaleDateString('tr-TR')}</td>
+        <td style="padding:8px;display:flex;gap:4px;flex-wrap:wrap">
+          <button onclick="adminRolToggle(${u.id},'${u.role}')"
+            style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--cream-light)">
+            ${u.role==='admin'?'👤 Kullanıcı Yap':'🔑 Admin Yap'}</button>
+          ${u.id !== currentUser?.id ? `<button onclick="adminSil('admin/kullanici-sil/${u.id}','${u.full_name} silinsin mi? Tüm verileri de silinecek!',loadAdminUsers)"
+            style="font-size:11px;padding:3px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>` : '<span style="font-size:11px;color:var(--text-muted)">(Siz)</span>'}
+        </td>
+      </tr>`).join('')}
+      </tbody></table>`;
+  } catch { $('admin-users-list').innerHTML = '<p style="color:var(--text-muted);font-size:13px">Kullanıcılar yüklenemedi.</p>'; }
+}
+function adminRolToggle(userId, mevcutRol) {
+  const yeniRol = mevcutRol === 'admin' ? 'kullanici' : 'admin';
+  if (!confirm(`Rolü "${yeniRol}" olarak değiştir?`)) return;
+  fetch(`${API}/admin/kullanici-rol/${userId}`, {
+    method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({role: yeniRol})
+  }).then(r=>r.json()).then(d=>{ showNotif(d.mesaj||'Rol güncellendi.'); loadAdminUsers(); }).catch(()=>showNotif('Hata!'));
+}
+
+const ORDER_STATUS = ['beklemede','onaylandı','kargoda','teslim_edildi','iptal'];
+async function loadAdminOrders() {
+  $('admin-orders-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const r = await fetch(`${API}/admin/siparisler`);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    $('admin-orders-list').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:2px solid var(--border)">
+        <th style="text-align:left;padding:8px">#</th><th style="text-align:left;padding:8px">Kullanıcı</th>
+        <th style="text-align:left;padding:8px">Ürün</th><th style="text-align:left;padding:8px">Tutar</th>
+        <th style="text-align:left;padding:8px">Durum</th><th style="text-align:left;padding:8px">İşlemler</th>
+      </tr></thead><tbody>
+      ${data.map(o=>`<tr style="border-bottom:1px solid var(--border-light)">
+        <td style="padding:8px;color:var(--text-muted)">#${o.id}</td>
+        <td style="padding:8px">${o.user_name||o.user_id}</td>
+        <td style="padding:8px">${o.artwork_title||o.event_title||'—'}</td>
+        <td style="padding:8px">${fmtPrice(o.amount)}</td>
+        <td style="padding:8px">
+          <select onchange="adminDurumGuncelle('admin/siparis-durum/${o.id}',this.value,loadAdminOrders)"
+            style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--cream-light)">
+            ${ORDER_STATUS.map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td style="padding:8px">
+          <button onclick="adminSil('admin/siparis-sil/${o.id}','#${o.id} siparişi silinsin mi?',loadAdminOrders)"
+            style="font-size:11px;padding:3px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
+        </td>
+      </tr>`).join('')}
+      </tbody></table>`;
+  } catch { $('admin-orders-list').innerHTML = '<p style="color:var(--text-muted);font-size:13px">Siparişler yüklenemedi.</p>'; }
+}
+
+// Madde 14 — Yorumlara Yanıt Ver + Silme
+async function loadAdminReviews() {
+  $('admin-reviews-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const r = await fetch(`${API}/admin/yorumlar`);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    if (!data.length) { $('admin-reviews-list').innerHTML='<p style="color:var(--text-muted)">Henüz yorum yok.</p>'; return; }
+    $('admin-reviews-list').innerHTML = data.map(rev=>`
+      <div style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div><b>${rev.user_name}</b> &nbsp;<span style="color:var(--text-muted);font-size:12px">${rev.artwork_title||rev.event_title||''}</span></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div>${'★'.repeat(rev.rating)}${'☆'.repeat(5-rev.rating)}</div>
+            <button onclick="adminSil('admin/yorum-sil/${rev.id}','Bu yorum silinsin mi?',loadAdminReviews)"
+              style="font-size:11px;padding:2px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
+          </div>
+        </div>
+        <p style="font-size:14px;color:var(--text-mid);margin:0 0 10px">${rev.comment}</p>
+        ${rev.admin_reply ? `<div style="background:var(--cream-light);border-left:3px solid var(--accent);padding:8px 12px;border-radius:0 6px 6px 0;margin-bottom:10px;font-size:13px"><b>Mevcut Yanıt:</b> ${rev.admin_reply}</div>` : ''}
+        <div style="display:flex;gap:8px">
+          <textarea id="reply-input-${rev.id}" placeholder="Yanıtınızı yazın..." rows="2"
+            style="flex:1;padding:8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;resize:vertical">${rev.admin_reply||''}</textarea>
+          <button class="btn-dark" style="align-self:flex-end" onclick="adminYanıtGonder(${rev.id})">Gönder</button>
+        </div>
+        <div id="reply-msg-${rev.id}"></div>
+      </div>`).join('');
+  } catch { $('admin-reviews-list').innerHTML = '<p style="color:var(--text-muted);font-size:13px">Yorumlar yüklenemedi.</p>'; }
+}
+async function adminYanıtGonder(reviewId) {
+  const reply = $(`reply-input-${reviewId}`)?.value?.trim();
+  if (!reply) return;
+  const msgEl = $(`reply-msg-${reviewId}`);
+  try {
+    const r = await fetch(`${API}/yorum-yanit`, {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({review_id: reviewId, admin_id: currentUser.id, reply})});
+    if (r.ok) { msgEl.innerHTML='<div class="form-msg success" style="margin-top:6px">✓ Yanıt kaydedildi.</div>'; setTimeout(()=>loadAdminReviews(),1200); }
+    else { msgEl.innerHTML='<div class="form-msg error" style="margin-top:6px">Hata oluştu.</div>'; }
+  } catch { msgEl.innerHTML='<div class="form-msg error" style="margin-top:6px">Bağlantı hatası.</div>'; }
+}
+
+const TICKET_STATUS = ['açık','işlemde','kapatıldı'];
+async function loadAdminTickets() {
+  $('admin-tickets-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const r = await fetch(`${API}/admin/destek-talepleri`);
+    if (!r.ok) throw new Error();
+    const data = await r.json();
+    $('admin-tickets-list').innerHTML = data.length ? data.map(t=>`
+      <div style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;background:var(--white)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div>
+            <b style="font-size:14px">${t.name}</b>
+            <span style="color:var(--text-muted);font-size:12px"> &lt;${t.email}&gt;</span>
+            <span style="margin-left:8px;font-size:11px;padding:2px 8px;border-radius:10px;background:${t.status==='kapatıldı'?'#e8f5e9':t.status==='işlemde'?'#fff8e1':'#fce4ec'};color:${t.status==='kapatıldı'?'#2e7d32':t.status==='işlemde'?'#f57f17':'#c62828'}">${t.status}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <select onchange="adminDurumGuncelle('admin/ticket-durum/${t.id}',this.value,loadAdminTickets)"
+              style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--cream-light)">
+              ${TICKET_STATUS.map(s=>`<option value="${s}" ${s===t.status?'selected':''}>${s}</option>`).join('')}
+            </select>
+            <button onclick="adminSil('admin/ticket-sil/${t.id}','Bu destek talebi silinsin mi?',loadAdminTickets)"
+              style="font-size:11px;padding:2px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
+          </div>
+        </div>
+        <div style="background:var(--cream-light);border-radius:6px;padding:10px 14px;font-size:13px;color:var(--text-mid);margin-bottom:10px">
+          💬 ${t.message}
+        </div>
+        ${t.admin_reply ? `<div style="background:#e8f5e9;border-left:3px solid #4caf50;border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;margin-bottom:10px">
+          <b style="color:#2e7d32">✓ Gönderilen Cevap:</b> ${t.admin_reply}
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${t.replied_at ? new Date(t.replied_at).toLocaleString('tr-TR') : ''}</div>
+        </div>` : ''}
+        <div style="margin-top:8px">
+          <textarea id="ticket-reply-${t.id}" rows="2" placeholder="Kullanıcıya cevabınızı yazın..."
+            style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box">${t.admin_reply||''}</textarea>
+          <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+            <button onclick="adminTicketCevapla(${t.id})" style="padding:6px 16px;background:var(--nav-bg);color:white;border:none;border-radius:6px;cursor:pointer;font-size:12px">
+              ✉️ ${t.admin_reply ? 'Cevabı Güncelle' : 'Cevap Gönder'}
+            </button>
+            <span id="ticket-reply-msg-${t.id}" style="font-size:12px;color:var(--accent)"></span>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">📅 ${new Date(t.created_at).toLocaleString('tr-TR')}</div>
+      </div>`).join('') : '<p style="color:var(--text-muted)">Destek talebi yok.</p>';
+  } catch { $('admin-tickets-list').innerHTML = '<p style="color:var(--text-muted);font-size:13px">Destek talepleri yüklenemedi.</p>'; }
+}
+
+async function loadAdminCoupons() {
+  $('admin-coupons-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const r = await fetch(`${API}/admin/kuponlar`);
+    const data = await r.json();
+    $('admin-coupons-list').innerHTML = `
+      <div style="background:var(--cream-light);padding:16px;border-radius:8px;margin-bottom:16px">
+        <b style="font-size:14px">+ Yeni Kupon Ekle</b>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:10px">
+          <input id="cp-code" placeholder="Kod (örn: YAZ25)" style="padding:7px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          <input id="cp-pct" type="number" placeholder="İndirim %" min="1" max="100" style="padding:7px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          <input id="cp-exp" type="date" placeholder="Son Tarih" style="padding:7px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+          <input id="cp-desc" placeholder="Açıklama" style="padding:7px;border:1px solid var(--border);border-radius:6px;font-size:13px">
+        </div>
+        <button class="btn-dark" style="margin-top:10px;font-size:13px" onclick="adminKuponEkle()">Kuponu Kaydet</button>
+        <span id="cp-msg" style="margin-left:10px;font-size:13px"></span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:8px">Kod</th><th style="text-align:left;padding:8px">İndirim</th>
+          <th style="text-align:left;padding:8px">Son Geçerlilik</th><th style="text-align:left;padding:8px">Açıklama</th>
+          <th style="text-align:left;padding:8px">Durum</th><th style="text-align:left;padding:8px">İşlemler</th>
+        </tr></thead><tbody>
+        ${data.map(c=>`<tr style="border-bottom:1px solid var(--border-light)">
+          <td style="padding:8px"><code style="background:var(--cream-light);padding:2px 6px;border-radius:4px">${c.code}</code></td>
+          <td style="padding:8px;color:var(--green);font-weight:700">%${c.discount_percent}</td>
+          <td style="padding:8px;color:var(--text-muted)">${c.expires_at||'—'}</td>
+          <td style="padding:8px">${c.description||'—'}</td>
+          <td style="padding:8px"><span style="font-size:11px;padding:2px 8px;border-radius:12px;background:${c.is_active?'#d1e7dd':'#f8d7da'};color:#333">${c.is_active?'Aktif':'Pasif'}</span></td>
+          <td style="padding:8px">
+            <button onclick="adminSil('admin/kupon-sil/${c.id}','«${c.code}» kuponu silinsin mi?',loadAdminCoupons)"
+              style="font-size:11px;padding:3px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
+          </td>
+        </tr>`).join('')}
+        </tbody></table>`;
+  } catch { $('admin-coupons-list').innerHTML='<p style="color:red">Kuponlar yüklenemedi.</p>'; }
+}
+async function adminKuponEkle() {
+  const body = {
+    code: $('cp-code').value.trim().toUpperCase(),
+    discount_percent: parseInt($('cp-pct').value)||0,
+    expires_at: $('cp-exp').value || null,
+    description: $('cp-desc').value.trim() || null
+  };
+  if (!body.code || !body.discount_percent) { $('cp-msg').innerHTML='<span style="color:red">Kod ve indirim zorunlu!</span>'; return; }
+  try {
+    const r = await fetch(`${API}/admin/kupon-ekle`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    if (r.ok) { $('cp-msg').innerHTML='<span style="color:green">✓ Kupon eklendi.</span>'; setTimeout(loadAdminCoupons, 800); }
+    else { const d = await r.json(); $('cp-msg').innerHTML=`<span style="color:red">${d.detail||'Hata!'}</span>`; }
+  } catch { $('cp-msg').innerHTML='<span style="color:red">Bağlantı hatası!</span>'; }
+}
+
+async function adminArtworkFormAc() {
+  const f = $('admin-artwork-form');
+  const isOpen = f.style.display !== 'none';
+  f.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    // Sanatçıları dropdown'a yükle
+    try {
+      const rs = await fetch(`${API}/sanatcilar`);
+      const sanatcilar = await rs.json();
+      $('aw-artist-select').innerHTML = '<option value="">— Mevcut Sanatçı Seç —</option>' +
+        sanatcilar.map(s=>`<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('');
+    } catch {}
+    // Kategorileri yükle
+    try {
+      const rc = await fetch(`${API}/kategoriler`);
+      const kategoriler = await rc.json();
+      $('aw-cat').innerHTML = '<option value="">— Mevcut Kategori Seç —</option>' +
+        kategoriler.map(c=>`<option value="${c.id}" data-name="${c.name}">${c.name}</option>`).join('');
+    } catch {}
+    // Resimleri dinamik yükle
+    await adminResimleriYenile();
+    // Alanları sıfırla
+    $('aw-title').value=''; $('aw-price').value='';
+    $('aw-artist-name').value=''; $('aw-artist-id').value='';
+    $('aw-cat-name').value=''; $('aw-cat-id').value='';
+    $('aw-desc').value=''; $('aw-discount').value='0'; $('aw-stock').value='1';
+    $('aw-year').value=''; $('aw-medium').value=''; $('aw-dimensions').value='';
+    $('aw-msg').innerHTML='';
+  }
+}
+
+function awArtistSecildi(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  if (opt.value) {
+    $('aw-artist-id').value = opt.value;
+    $('aw-artist-name').value = opt.dataset.name || opt.text;
+  } else {
+    $('aw-artist-id').value = '';
+    $('aw-artist-name').value = '';
+  }
+}
+
+function awKategoriSecildi(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  if (opt.value) {
+    $('aw-cat-id').value = opt.value;
+    $('aw-cat-name').value = opt.dataset.name || opt.text;
+  } else {
+    $('aw-cat-id').value = '';
+    $('aw-cat-name').value = '';
+  }
+}
+
+function awResimSecildi(val) {
+  if (val) {
+    $('aw-preview-img').src = `images/${val}`;
+    $('aw-img-preview').style.display = 'block';
+  } else {
+    $('aw-img-preview').style.display = 'none';
+  }
+}
+
+async function adminResimleriYenile() {
+  try {
+    const r = await fetch(`${API}/images-listesi`);
+    const d = await r.json();
+    const sel = $('aw-image');
+    const mevcutDeger = sel ? sel.value : '';
+    if (sel) {
+      sel.innerHTML = '<option value="">— Resim Seçin —</option>' +
+        (d.images||[]).map(f=>`<option value="${f}">${f}</option>`).join('');
+      if (mevcutDeger) sel.value = mevcutDeger;
+    }
+  } catch {}
+}
+
+async function adminEserKaydet() {
+  const msg = $('aw-msg');
+  const title = $('aw-title').value.trim();
+  const price = parseFloat($('aw-price').value);
+  if (!title) { msg.innerHTML='<div class="form-msg error">Eser adı zorunludur.</div>'; return; }
+  if (!price || price <= 0) { msg.innerHTML='<div class="form-msg error">Geçerli bir fiyat girin.</div>'; return; }
+
+  // Sanatçı: seçili id varsa kullan, yoksa yazılan isimle yeni oluştur
+  let artistId = parseInt($('aw-artist-id').value) || null;
+  const artistName = $('aw-artist-name').value.trim();
+  if (!artistId && artistName) {
+    try {
+      const ar = await fetch(`${API}/admin/sanatci-ekle`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name: artistName})
+      });
+      if (ar.ok) { const ad = await ar.json(); artistId = ad.artist_id; }
+    } catch {}
+  }
+
+  // Kategori: seçili id varsa kullan, yoksa yazılan isimle yeni oluştur
+  let categoryId = parseInt($('aw-cat-id').value) || null;
+  const categoryName = $('aw-cat-name').value.trim();
+  if (!categoryId && categoryName) {
+    try {
+      const cr = await fetch(`${API}/admin/kategori-ekle`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({name: categoryName})
+      });
+      if (cr.ok) { const cd = await cr.json(); categoryId = cd.category_id; }
+    } catch {}
+  }
+
+  const body = {
+    title, price,
+    artist_id: artistId,
+    category_id: categoryId,
+    description: $('aw-desc').value.trim(),
+    year_created: parseInt($('aw-year').value) || null,
+    medium: $('aw-medium').value.trim() || null,
+    dimensions: $('aw-dimensions').value.trim() || null,
+    discount_percent: parseInt($('aw-discount').value) || 0,
+    stock: parseInt($('aw-stock').value) || 1,
+    image_url: $('aw-image').value || null
+  };
+
+  try {
+    msg.innerHTML='<div class="form-msg" style="color:var(--text-muted)">Kaydediliyor...</div>';
+    const r = await fetch(`${API}/admin/eser-ekle`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    if (r.ok) {
+      msg.innerHTML='<div class="form-msg success">✓ Eser başarıyla eklendi! Sayfa güncelleniyor...</div>';
+      setTimeout(()=>loadAdminArtworks(), 800);
+      await loadEserler();
+    } else {
+      const d = await r.json();
+      msg.innerHTML=`<div class="form-msg error">${d.detail||'Hata oluştu.'}</div>`;
+    }
+  } catch { msg.innerHTML='<div class="form-msg error">Bağlantı hatası.</div>'; }
+}
+function adminEventFormAc() {
+  const f = $('admin-event-form');
+  const isOpen = f.style.display !== 'none';
+  f.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    // Alanları sıfırla
+    $('ev-title').value=''; $('ev-date').value=''; $('ev-cap').value='';
+    $('ev-price').value='0'; $('ev-loc').value=''; $('ev-desc').value='';
+    $('ev-msg').innerHTML=''; $('ev-img-preview').style.display='none';
+    // Resimleri yükle
+    adminEtkinlikResimleriYenile();
+  }
+}
+
+async function adminEtkinlikResimleriYenile() {
+  try {
+    const r = await fetch(`${API}/images-listesi`);
+    const d = await r.json();
+    const sel = $('ev-image');
+    const mevcutDeger = sel ? sel.value : '';
+    if (sel) {
+      sel.innerHTML = '<option value="">— Resim Seçin —</option>' +
+        (d.images||[]).map(f=>`<option value="${f}">${f}</option>`).join('');
+      if (mevcutDeger) sel.value = mevcutDeger;
+    }
+  } catch {}
+}
+
+function evResimSecildi(val) {
+  if (val) {
+    $('ev-preview-img').src = `images/${val}`;
+    $('ev-img-preview').style.display = 'block';
+  } else {
+    $('ev-img-preview').style.display = 'none';
+  }
+}
+
+async function adminEtkinlikKaydet() {
+  const msg = $('ev-msg');
+  const title = $('ev-title').value.trim();
+  const eventDate = $('ev-date').value;
+  const capacity = parseInt($('ev-cap').value);
+  if (!title) { msg.innerHTML='<div class="form-msg error">Etkinlik adı zorunludur.</div>'; return; }
+  if (!eventDate) { msg.innerHTML='<div class="form-msg error">Tarih seçiniz.</div>'; return; }
+  if (!capacity || capacity < 1) { msg.innerHTML='<div class="form-msg error">Geçerli bir kapasite girin.</div>'; return; }
+
+  const body = {
+    title,
+    event_type: $('ev-type').value,
+    event_date: eventDate,
+    capacity,
+    price: parseFloat($('ev-price').value) || 0,
+    location: $('ev-loc').value.trim(),
+    description: $('ev-desc').value.trim(),
+    image_url: $('ev-image').value || null
+  };
+  try {
+    msg.innerHTML='<div class="form-msg" style="color:var(--text-muted)">Kaydediliyor...</div>';
+    const r = await fetch(`${API}/admin/etkinlik-ekle`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    if (r.ok) {
+      msg.innerHTML='<div class="form-msg success">✓ Etkinlik başarıyla eklendi! Liste güncelleniyor...</div>';
+      // Admin listesini yenile
+      setTimeout(()=>loadAdminEvents(), 800);
+      // Etkinlik sayfası + ana sayfa listesini de yenile
+      await loadEvents();
+    } else {
+      const d = await r.json();
+      msg.innerHTML=`<div class="form-msg error">${d.detail||'Hata oluştu.'}</div>`;
+    }
+  } catch { msg.innerHTML='<div class="form-msg error">Bağlantı hatası.</div>'; }
+}
+function setLoggedIn(on) {
+  $('user-info').style.display = on ? 'flex':'none';
+  $('auth-btns').style.display = on ? 'none':'flex';
+  if (on && currentUser) { $('user-name-display').textContent = currentUser.full_name; }
+}
+
+// ── ACCOUNT PANELS ────────────────────────────────────────────
+function showAccountPanel(name) {
+  document.querySelectorAll('.account-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.account-menu-item').forEach(i => i.classList.remove('active'));
+  const panel = $('panel-'+name);
+  if (panel) panel.classList.add('active');
+  event.target.classList.add('active');
+}
+function loadAccountData() {
+  if (!currentUser) return;
+  $('account-welcome').textContent = `Hoş geldiniz, ${currentUser.full_name}`;
+  $('profile-name').value = currentUser.full_name;
+  $('profile-email').value = currentUser.email;
+  loadOrders(); loadReservations(); loadFavorites();
+  if (currentUser) { $('support-name').value = currentUser.full_name; $('support-email').value = currentUser.email; }
+}
+async function profilGuncelle() {
+  if (!currentUser) return;
+  const r = await fetch(`${API}/profil-guncelle`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,full_name:$('profile-name').value,email:$('profile-email').value})});
+  if (r.ok) { currentUser.full_name=$('profile-name').value; $('user-name-display').textContent=currentUser.full_name; $('profile-msg').innerHTML='<div class="form-msg success">✓ Profil güncellendi.</div>'; }
+  else $('profile-msg').innerHTML='<div class="form-msg error">Hata oluştu.</div>';
+}
+async function sifreDegistir() {
+  const old=$('old-pass').value, nw=$('new-pass').value, nw2=$('new-pass2').value;
+  if (nw !== nw2) { $('password-msg').innerHTML='<div class="form-msg error">Yeni şifreler eşleşmiyor.</div>'; return; }
+  const r = await fetch(`${API}/sifre-degistir`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,old_password:old,new_password:nw})});
+  const d = await r.json();
+  $('password-msg').innerHTML = r.ok ? `<div class="form-msg success">✓ ${d.mesaj}</div>` : `<div class="form-msg error">${d.detail}</div>`;
+}
+async function loadOrders() {
+  if (!currentUser) return;
+  const r = await fetch(`${API}/siparislerim/${currentUser.id}`);
+  const list = await r.json();
+  $('orders-list').innerHTML = list.length ? list.map(o => `
+    <div style="background:var(--white);border:1px solid var(--border);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:4px">${o.artwork_title||o.event_title||'Ürün'}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${fmtDate(o.created_at)} · ${o.payment_method}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;color:var(--accent-dark)">${fmtPrice(o.amount)}</div>
+        <span class="status-badge ${o.status==='onaylandı'?'onaylandi':'beklemede'}">${o.status}</span>
+      </div>
+    </div>`).join('') : '<div class="empty-state">Henüz siparişiniz yok.</div>';
+}
+async function loadReservations() {
+  if (!currentUser) return;
+  const r = await fetch(`${API}/rezervasyonlarim/${currentUser.id}`);
+  const list = await r.json();
+  $('reservations-list').innerHTML = list.length ? list.map(res => `
+    <div style="background:var(--white);border:1px solid var(--border);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:16px;margin-bottom:4px">${res.event_title}</div>
+        <div style="font-size:12px;color:var(--text-muted)">${fmtDate(res.event_date)} · ${res.location||''} · ${res.participant_count} katılımcı</div>
+      </div>
+      <div style="text-align:right">
+        <span class="status-badge ${res.status==='onaylandı'?'onaylandi':res.status==='iptal'?'iptal':'beklemede'}">${res.status}</span>
+        ${res.status!=='iptal'?`<br><button class="btn-outline" style="margin-top:8px;font-size:10px;padding:4px 12px" onclick="rezervasyonIptal(${res.id})">İptal Et</button>`:''}
+      </div>
+    </div>`).join('') : '<div class="empty-state">Henüz rezervasyonunuz yok.</div>';
+}
+async function rezervasyonIptal(id) {
+  if (!confirm('Rezervasyonu iptal etmek istiyor musunuz?')) return;
+  await fetch(`${API}/rezervasyon-iptal/${id}`,{method:'DELETE'});
+  showNotif('Rezervasyon iptal edildi.'); loadReservations();
+}
+async function loadFavorites() {
+  if (!currentUser) return;
+  const r = await fetch(`${API}/favoriler/${currentUser.id}`);
+  const list = await r.json();
+  $('favorites-grid').innerHTML = list.length ? list.map((e,i) => eserCard(e,i,true)).join('') : '<div class="empty-state">Favori listeniz boş.</div>';
+}
+
+// ── ESERLERİ YÜKLE ────────────────────────────────────────────
+async function loadEserler() {
+  try {
+    const r = await fetch(`${API}/eserler`);
+    allEserler = await r.json();
+    renderEserler(allEserler, 'gallery-grid');
+    // Kayıtlı öne çıkan varsa uygula, yoksa ilk 8
+    try {
+      const saved = JSON.parse(localStorage.getItem('sanat_featuredIds') || '[]');
+      if (saved.length) {
+        featuredIds = new Set(saved);
+        const selected = allEserler.filter(e => featuredIds.has(e.id));
+        renderEserler(selected.length ? selected : allEserler.slice(0,8), 'featured-grid');
+      } else {
+        renderEserler(allEserler.slice(0,8), 'featured-grid');
+      }
+    } catch { renderEserler(allEserler.slice(0,8), 'featured-grid'); }
+  } catch {
+    $('gallery-grid').innerHTML = errorMsg();
+    $('featured-grid').innerHTML = errorMsg();
+  }
+}
+function errorMsg() { return `<div class="loading" style="color:var(--red)">⚠️ Backend sunucusu çalışmıyor.<br><small>uvicorn main:app --reload</small></div>`; }
+function renderEserler(list, gridId) {
+  const g = $(gridId); if (!g) return;
+  g.innerHTML = list.length ? list.map((e,i) => eserCard(e,i)).join('') : '<div class="loading">Eser bulunamadı.</div>';
+}
+function eserCard(eser, idx, isFav=false) {
+  const img = `images/${eser.image_url}`;
+  const discounted = eser.discount_percent > 0;
+  const origPrice = Number(eser.price);
+  const finalPrice = discounted ? origPrice*(1-eser.discount_percent/100) : origPrice;
+  const inCompare = compareList.find(c => c.id===eser.id);
+  return `
+    <div class="product-card" style="animation-delay:${idx*.06}s" onclick="openModal(${eser.id})">
+      <input type="checkbox" class="compare-check" title="Karşılaştırmaya ekle" ${inCompare?'checked':''} onclick="event.stopPropagation();toggleCompare(${eser.id})" ${compareList.length>=3&&!inCompare?'disabled':''}>
+      <div class="product-img-wrap">
+        <img src="${img}" alt="${eser.title}" onerror="this.src='https://via.placeholder.com/400x400/f0ebe4/9a9090?text=🖼️'">
+        ${discounted ? `<div class="product-badge discount">-%${eser.discount_percent}</div>` : ''}
+        <div class="product-overlay"><button onclick="event.stopPropagation();openModal(${eser.id})">Detayları Gör</button></div>
+      </div>
+      <div class="product-info">
+        <div class="product-artist">${eser.artist_name||'Bilinmeyen'}</div>
+        <div class="product-title">${eser.title}</div>
+        <div class="product-stars">${stars(eser.avg_rating||0)} <span style="color:var(--text-muted);font-size:11px">(${eser.review_count||0})</span></div>
+        <div class="product-desc">${eser.description||''}</div>
+        <div class="product-footer">
+          <div class="product-price">
+            ${discounted ? `<s>${fmtPrice(origPrice)}</s><br>` : ''}${fmtPrice(finalPrice)}
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="fav-btn ${isFav?'active':''}" title="Favorilere ekle" onclick="event.stopPropagation();favoriToggle(${eser.id},this)">♡</button>
+            <button class="add-cart-btn" onclick="event.stopPropagation();addArtworkToCart(${eser.id},'${eser.title.replace(/'/g,"\\'")}',${finalPrice},'images/${eser.image_url}')">🛒 Sepete Ekle</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+// ── ÖNE ÇIKAN ESER YÖNETİMİ ─────────────────────────────────
+let featuredIds = new Set();
+function loadAdminFeatured() {
+  try { featuredIds = new Set(JSON.parse(localStorage.getItem('sanat_featuredIds') || '[]')); } catch { featuredIds = new Set(); }
+  renderAdminFeatured();
+}
+function renderAdminFeatured() {
+  const list = $('admin-featured-list');
+  if (!allEserler.length) { list.innerHTML='<div class="loading">Eserler yükleniyor, lütfen bekleyin...</div>'; setTimeout(loadAdminFeatured, 600); return; }
+  const secilen = allEserler.filter(e => featuredIds.has(e.id)).length;
+  list.innerHTML = `
+    <div style="margin-bottom:12px;padding:10px 14px;background:var(--cream-light);border-radius:6px;font-size:13px;color:var(--text-mid)">
+      <b style="color:${secilen===8?'var(--accent)':'var(--text-dark)'}">${secilen}/8</b> eser seçildi
+      ${secilen===8?'<span style="color:var(--accent)"> — maksimuma ulaşıldı</span>':''}
+    </div>
+    ${allEserler.map(e => `
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid ${featuredIds.has(e.id)?'var(--accent)':'var(--border)'};border-radius:6px;margin-bottom:6px;cursor:pointer;background:${featuredIds.has(e.id)?'var(--cream-light)':'var(--white)'};transition:all .15s">
+      <input type="checkbox" id="fc-${e.id}" ${featuredIds.has(e.id)?'checked':''} onchange="featuredToggle(${e.id})" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer">
+      ${e.image_url ? `<img src="images/${e.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px" onerror="this.style.display='none'">` : '<div style="width:40px;height:40px;background:var(--cream);border-radius:4px"></div>'}
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${e.title}</div>
+        <div style="font-size:11px;color:var(--text-muted)">${e.artist_name||'—'} · ${(e.price||0).toLocaleString('tr-TR')} ₺</div>
+      </div>
+      ${featuredIds.has(e.id) ? '<span style="font-size:11px;color:var(--accent);font-weight:700">⭐</span>' : ''}
+    </label>`).join('')}`;
+  $('featured-save-msg').textContent = `${secilen} eser seçili`;
+}
+function featuredToggle(id) {
+  const cb = $('fc-'+id);
+  if (!cb) return;
+  if (cb.checked) {
+    const secilen = allEserler.filter(e => featuredIds.has(e.id)).length;
+    if (secilen >= 8) { cb.checked = false; showNotif('En fazla 8 eser seçebilirsiniz.', 'error'); return; }
+    featuredIds.add(id);
+  } else {
+    featuredIds.delete(id);
+  }
+  // Sadece o satırın görünümünü güncelle (DOM reset yok)
+  const label = cb.closest('label');
+  if (label) {
+    label.style.borderColor = cb.checked ? 'var(--accent)' : 'var(--border)';
+    label.style.background = cb.checked ? 'var(--cream-light)' : 'var(--white)';
+    const star = label.querySelector('.feat-star');
+    if (cb.checked && !star) {
+      const s = document.createElement('span'); s.className='feat-star';
+      s.style.cssText='font-size:11px;color:var(--accent);font-weight:700'; s.textContent='⭐'; label.appendChild(s);
+    } else if (!cb.checked && star) star.remove();
+  }
+  const secilen = allEserler.filter(e => featuredIds.has(e.id)).length;
+  $('featured-save-msg').textContent = `${secilen} eser seçili`;
+}
+function adminFeaturedKaydet() {
+  localStorage.setItem('sanat_featuredIds', JSON.stringify([...featuredIds]));
+  const selected = allEserler.filter(e => featuredIds.has(e.id));
+  renderEserler(selected.length ? selected : allEserler.slice(0,8), 'featured-grid');
+  showNotif('✓ Öne çıkan eserler güncellendi!');
+  const secilen = selected.length;
+  $('featured-save-msg').textContent = `${secilen} eser kaydedildi ✓`;
+}
+
+function sortFeatured(val) {
+  let list = [...allEserler];
+  if (val==='price_asc') list.sort((a,b) => a.price-b.price);
+  else if (val==='price_desc') list.sort((a,b) => b.price-a.price);
+  else if (val==='rating') list.sort((a,b) => (b.avg_rating||0)-(a.avg_rating||0));
+  else if (val==='newest') list.sort((a,b) => b.id-a.id);
+  renderEserler(list.slice(0,8), 'featured-grid');
+}
+function filterByCategory(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = cat ? allEserler.filter(e => e.category_name === cat) : allEserler;
+  renderEserler(filtered, 'gallery-grid');
+}
+function sortEserler(val) {
+  let sorted = [...allEserler];
+  if (val==='price_asc') sorted.sort((a,b) => a.price-b.price);
+  if (val==='price_desc') sorted.sort((a,b) => b.price-a.price);
+  if (val==='rating') sorted.sort((a,b) => (b.avg_rating||0)-(a.avg_rating||0));
+  renderEserler(sorted, 'gallery-grid');
+}
+function filterEserler() {
+  const q = $('searchInput').value.toLowerCase();
+  const filtered = allEserler.filter(e => e.title.toLowerCase().includes(q) || (e.artist_name||'').toLowerCase().includes(q));
+  renderEserler(filtered.slice(0,8), 'featured-grid');
+  renderEserler(filtered, 'gallery-grid');
+}
+
+// ── ETKİNLİKLER ───────────────────────────────────────────────
+async function loadEvents() {
+  try {
+    const r = await fetch(`${API}/etkinlikler`);
+    allEvents = await r.json();
+    renderEvents(allEvents, 'events-grid');
+    renderEvents(allEvents.slice(0,3), 'home-events-grid');
+  } catch {
+    $('events-grid').innerHTML = errorMsg();
+    $('home-events-grid').innerHTML = errorMsg();
+  }
+}
+function renderEvents(list, gridId) {
+  const g = $(gridId); if (!g) return;
+  g.innerHTML = list.length ? list.map((e,i) => eventCard(e,i)).join('') : '<div class="loading">Etkinlik bulunamadı.</div>';
+}
+function eventCard(ev, idx) {
+  const capacity = ev.capacity||1;
+  const reserved = ev.reserved_count||0;
+  const pct = Math.min(100, Math.round(reserved/capacity*100));
+  const types = {atolye:'Atölye',sergi:'Sergi',konferans:'Konferans',tur:'Tur'};
+  return `
+    <div class="event-card" style="animation-delay:${idx*.08}s;cursor:pointer" onclick="openEventModal(${ev.id})">
+      <div class="event-img">
+        <img src="images/${ev.image_url||''}" alt="${ev.title}" onerror="this.style.display='none';this.parentElement.innerHTML+='🎨'">
+      </div>
+      <div class="event-body">
+        <div class="event-type">${types[ev.event_type]||ev.event_type}</div>
+        <div class="event-title">${ev.title}</div>
+        <div class="event-meta">
+          <b>Tarih:</b> ${fmtDate(ev.event_date)}<br>
+          <b>Konum:</b> ${ev.location||'—'}<br>
+          <b>Süre:</b> ${ev.duration_minutes} dakika<br>
+          <b>Kontenjan:</b> ${reserved}/${capacity} kişi
+          <div class="capacity-bar"><div class="capacity-fill" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      <div class="event-footer">
+        <div class="event-price">${ev.price>0 ? fmtPrice(ev.price) : 'Ücretsiz'}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-outline" style="padding:7px 10px;font-size:12px" onclick="event.stopPropagation();addEventToCartById(${ev.id})" title="Sepete Ekle">🛒</button>
+          <button class="btn-dark" onclick="event.stopPropagation();openResModal(${ev.id}, ${JSON.stringify(ev.title)}, ${ev.price})">Rezervasyon</button>
+        </div>
+      </div>
+    </div>`;
+}
+function filterEvents(type, btn) {
+  document.querySelectorAll('#page-events .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = type ? allEvents.filter(e => e.event_type===type) : allEvents;
+  renderEvents(filtered, 'events-grid');
+}
+
+// ── MODAL ─────────────────────────────────────────────────────
+async function openModal(id) {
+  const eser = allEserler.find(e => e.id===id);
+  if (!eser) return;
+  currentEser = eser;
+  $('modal-img').src = `images/${eser.image_url}`;
+  $('modal-artist').textContent = eser.artist_name||'Bilinmeyen Sanatçı';
+  $('modal-title').textContent = eser.title;
+  $('modal-meta').innerHTML = `${eser.year_created||''} · ${eser.medium||''} · ${eser.dimensions||''}`;
+  const disc = eser.discount_percent > 0;
+  const final = disc ? Number(eser.price)*(1-eser.discount_percent/100) : Number(eser.price);
+  $('modal-price').innerHTML = disc ? `<s style="font-size:18px;color:var(--text-muted)">${fmtPrice(eser.price)}</s> ${fmtPrice(final)}` : fmtPrice(final);
+  $('modal-desc').textContent = eser.description||'';
+  $('modal-bg').classList.add('open');
+  // reviews
+  await loadModalReviews(id);
+  await loadModalStats(id);
+  // auth check for review form
+  if (!currentUser) { $('review-auth-warning').style.display='block'; $('review-form-inner').style.display='none'; }
+  else { $('review-auth-warning').style.display='none'; $('review-form-inner').style.display='block'; }
+}
+function closeModal(e) {
+  if (!e || e.target===$('modal-bg') || (e.target&&e.target.classList.contains('modal-close'))) {
+    $('modal-bg').classList.remove('open');
+    document.querySelectorAll('.modal-tab').forEach((t,i) => t.classList.toggle('active',i===0));
+    document.querySelectorAll('.modal-tab-content').forEach((c,i) => c.classList.toggle('active',i===0));
+  }
+}
+function switchModalTab(name, btn) {
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  $('modal-tab-'+name).classList.add('active');
+}
+async function loadModalReviews(artworkId) {
+  try {
+    const r = await fetch(`${API}/yorumlar/${artworkId}?siralama=yeni`);
+    const list = await r.json();
+    $('modal-tab-reviews').innerHTML = list.length ? list.map(rev => `
+      <div class="review-item">
+        <div class="review-header">
+          <span class="review-user">${rev.user_name||'Anonim'} ${rev.is_verified?'<span style="font-size:10px;color:var(--green);letter-spacing:1px">✓ Doğrulanmış</span>':''}</span>
+          <span class="review-date">${fmtDate(rev.created_at)}</span>
+        </div>
+        <div class="review-stars">${stars(rev.rating)}</div>
+        <div class="review-comment">${rev.comment}</div>
+        ${rev.admin_reply ? `<div class="review-reply"><div class="review-reply-label">Galeri Yanıtı</div>${rev.admin_reply}</div>` : ''}
+        <div class="review-actions">
+          <button class="review-vote-btn" onclick="oyVer(${rev.id},true)">👍 Faydalı (${rev.helpful_count||0})</button>
+          <button class="review-vote-btn" onclick="oyVer(${rev.id},false)">👎</button>
+        </div>
+      </div>`).join('') : '<div style="color:var(--text-muted);font-size:14px;padding:20px 0">Henüz yorum yapılmamış. İlk yorumu siz yapın!</div>';
+  } catch { $('modal-tab-reviews').innerHTML='<div style="color:var(--text-muted)">Yorumlar yüklenemedi.</div>'; }
+}
+async function loadModalStats(artworkId) {
+  try {
+    const r = await fetch(`${API}/ortalama-puan/${artworkId}`);
+    const d = await r.json();
+    const total = d.total||1;
+    $('modal-tab-stats').innerHTML = `
+      <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px">
+        <div style="text-align:center">
+          <div style="font-family:'Playfair Display',serif;font-size:48px;color:var(--accent)">${Number(d.avg).toFixed(1)}</div>
+          <div style="color:var(--accent);font-size:20px">${stars(d.avg)}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${d.total} yorum</div>
+        </div>
+        <div class="rating-bars" style="flex:1">
+          ${[5,4,3,2,1].map(n => `
+            <div class="rating-row">
+              <span style="width:10px">${n}</span>★
+              <div class="rating-bar"><div class="rating-bar-fill" style="width:${Math.round((d['r'+n]||0)/total*100)}%"></div></div>
+              <span style="width:28px;text-align:right">${d['r'+n]||0}</span>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  } catch { $('modal-tab-stats').innerHTML='<div style="color:var(--text-muted)">Yüklenemedi.</div>'; }
+}
+async function oyVer(reviewId, isHelpful) {
+  if (!currentUser) { showNotif('Oy vermek için giriş yapın.','error'); return; }
+  await fetch(`${API}/yorum-oy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_id:reviewId,user_id:currentUser.id,is_helpful:isHelpful})});
+  showNotif('Oyunuz kaydedildi.');
+  if (currentEser) await loadModalReviews(currentEser.id);
+}
+async function yorumGonder() {
+  if (!currentUser) { showNotif('Yorum için giriş yapın.','error'); return; }
+  const rating = document.querySelector('input[name="star"]:checked')?.value;
+  const comment = $('review-comment').value.trim();
+  if (!rating || !comment) { $('review-msg').innerHTML='<div class="form-msg error">Puan ve yorum zorunludur.</div>'; return; }
+  const r = await fetch(`${API}/yorum-yap`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:currentEser.id,rating:parseInt(rating),comment})});
+  const d = await r.json();
+  $('review-msg').innerHTML = r.ok ? `<div class="form-msg success">✓ ${d.mesaj}${d.dogrulanmis?' (Doğrulanmış satın alım)':''}</div>` : '<div class="form-msg error">Hata oluştu.</div>';
+  $('review-comment').value=''; document.querySelectorAll('input[name="star"]').forEach(s => s.checked=false);
+  await loadModalReviews(currentEser.id);
+}
+
+// ── FAVORİ ────────────────────────────────────────────────────
+async function favoriToggle(artworkId, btn) {
+  if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Favori için giriş yapın.','error'); return; }
+  const isActive = btn.classList.contains('active');
+  if (isActive) {
+    await fetch(`${API}/favori-kaldir/${currentUser.id}/${artworkId}`,{method:'DELETE'});
+    btn.classList.remove('active'); showNotif('Favorilerden kaldırıldı.');
+  } else {
+    const r = await fetch(`${API}/favori-ekle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:artworkId})});
+    if (r.ok) { btn.classList.add('active'); showNotif('Favorilere eklendi! ❤️'); }
+    else showNotif('Zaten favorilerde.','error');
+  }
+}
+async function modalFavoriToggle() {
+  if (!currentUser || !currentEser) { showPage('auth'); setAuthTab('login'); return; }
+  const btn = $('modal-fav-btn');
+  const isActive = btn.textContent.includes('Kaldır');
+  if (isActive) {
+    await fetch(`${API}/favori-kaldir/${currentUser.id}/${currentEser.id}`,{method:'DELETE'});
+    btn.textContent = '♡ Favorilere Ekle'; showNotif('Favorilerden kaldırıldı.');
+  } else {
+    const r = await fetch(`${API}/favori-ekle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:currentEser.id})});
+    if (r.ok) { btn.textContent = '♥ Favorilerden Kaldır'; showNotif('Favorilere eklendi! ❤️'); }
+    else showNotif('Zaten favorilerde.','error');
+  }
+}
+
+// ── KARŞILAŞTIRMA ─────────────────────────────────────────────
+function toggleCompare(id) {
+  const eser = allEserler.find(e => e.id===id);
+  if (!eser) return;
+  const idx = compareList.findIndex(c => c.id===id);
+  if (idx>=0) compareList.splice(idx,1);
+  else if (compareList.length < 3) compareList.push(eser);
+  else { showNotif('En fazla 3 eser karşılaştırabilirsiniz.','error'); return; }
+  updateCompareBar();
+  renderEserler(allEserler, 'gallery-grid');
+  renderEserler(allEserler.slice(0,8), 'featured-grid');
+}
+function modalCompareToggle() {
+  if (!currentEser) return;
+  toggleCompare(currentEser.id); closeModal();
+}
+function updateCompareBar() {
+  const bar = $('compare-bar');
+  if (!compareList.length) { bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  $('compare-items').innerHTML = compareList.map(e => `
+    <div class="compare-item-tag">${e.title}<button onclick="toggleCompare(${e.id})">✕</button></div>`).join('');
+}
+function clearCompare() { compareList=[]; updateCompareBar(); renderEserler(allEserler,'gallery-grid'); renderEserler(allEserler.slice(0,8),'featured-grid'); }
+function goCompare() { showPage('compare'); renderCompareTable(); }
+function setCompareMode(mode, btn) {
+  compareMode = mode;
+  document.querySelectorAll('#page-compare .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCompareTable();
+}
+async function renderCompareTable() {
+  const container = $('compare-result');
+  if (!compareList.length) { container.innerHTML='<div class="empty-state">Sergi Salonu\'nda eserlerin üzerindeki kutucukları işaretleyin.</div>'; return; }
+  try {
+    const r = await fetch(`${API}/karsilastir-eserler`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:compareList.map(c=>c.id)})});
+    const items = await r.json();
+    container.innerHTML = `
+      <div style="overflow-x:auto">
+        <table class="compare-table">
+          <tr>
+            <th></th>
+            ${items.map(e=>`<th>${e.title}</th>`).join('')}
+          </tr>
+          <tr><td>Görsel</td>${items.map(e=>`<td><img src="images/${e.image_url}" onerror="this.src='https://via.placeholder.com/80x80/f0ebe4/9a9090?text=🖼️'"></td>`).join('')}</tr>
+          <tr><td>Sanatçı</td>${items.map(e=>`<td>${e.artist_name||'—'}</td>`).join('')}</tr>
+          <tr><td>Kategori</td>${items.map(e=>`<td>${e.category_name||'—'}</td>`).join('')}</tr>
+          <tr><td>Fiyat</td>${items.map(e=>`<td style="color:var(--accent-dark);font-weight:700">${fmtPrice(e.price)}</td>`).join('')}</tr>
+          <tr><td>Yıl</td>${items.map(e=>`<td>${e.year_created||'—'}</td>`).join('')}</tr>
+          <tr><td>Teknik</td>${items.map(e=>`<td>${e.medium||'—'}</td>`).join('')}</tr>
+          <tr><td>Boyut</td>${items.map(e=>`<td>${e.dimensions||'—'}</td>`).join('')}</tr>
+          <tr><td>Puan</td>${items.map(e=>`<td style="color:var(--accent)">${stars(e.avg_rating)} (${Number(e.avg_rating).toFixed(1)})</td>`).join('')}</tr>
+          <tr><td>Yorum</td>${items.map(e=>`<td>${e.review_count}</td>`).join('')}</tr>
+          <tr><td>İndirim</td>${items.map(e=>`<td>${e.discount_percent>0?`%${e.discount_percent}`:'—'}</td>`).join('')}</tr>
+        </table>
+      </div>`;
+  } catch { container.innerHTML = '<div class="empty-state">Karşılaştırma verisi yüklenemedi.</div>'; }
+}
+
+function formatCardNumber(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+function formatExpiry(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 2) v = v.substring(0,2)+'/'+v.substring(2);
+  input.value = v;
+}
+
+// ── SEPET SİSTEMİ ─────────────────────────────────────────────
+let cart = []; // {id, type:'artwork'|'event', title, price, image, artworkId, eventId}
+let cartCouponDiscount = 0;
+let selectedPayMethod = 'kredi_karti';
+
+function addArtworkToCart(artworkId, title, price, image) {
+  if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Sepete eklemek için giriş yapın.','error'); return; }
+  if (cart.find(c => c.type==='artwork' && c.artworkId===artworkId)) { showNotif('Bu eser zaten sepetinizde.','error'); return; }
+  cart.push({id: Date.now(), type:'artwork', title, price, image, artworkId, eventId:null});
+  updateCartUI(); showNotif(`"${title}" sepete eklendi! 🛒`); toggleCart();
+}
+
+function addEventToCart(evObj) {
+  if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Sepete eklemek için giriş yapın.','error'); return; }
+  if (!evObj) return;
+  if (cart.find(c => c.type==='event' && c.eventId===evObj.id)) { showNotif('Bu etkinlik zaten sepetinizde.','error'); return; }
+  cart.push({id: Date.now(), type:'event', title: evObj.title, price: Number(evObj.price), image:`images/${evObj.image_url||''}`, artworkId:null, eventId:evObj.id});
+  updateCartUI(); showNotif(`"${evObj.title}" sepete eklendi! 🛒`); toggleCart();
+}
+
+function removeFromCart(cartItemId) {
+  cart = cart.filter(c => c.id !== cartItemId);
+  updateCartUI();
+}
+
+function getCartTotal() {
+  const subtotal = cart.reduce((s, c) => s + c.price, 0);
+  return subtotal * (1 - cartCouponDiscount/100);
+}
+
+function updateCartUI() {
+  const badge = $('cart-badge');
+  const count = cart.length;
+  badge.textContent = count;
+  badge.classList.toggle('show', count > 0);
+
+  const listEl = $('cart-items-list');
+  if (!count) {
+    listEl.innerHTML = '<div class="empty-state" style="padding:40px 20px">Sepetiniz boş.</div>';
+  } else {
+    listEl.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <img src="${item.image}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/64x64/f0ebe4/9a9090?text=🖼️'">
+        <div class="cart-item-info">
+          <div class="cart-item-title">${item.title}</div>
+          <div class="cart-item-sub">${item.type==='artwork'?'Sanat Eseri':'Etkinlik'}</div>
+          <div class="cart-item-price">${fmtPrice(item.price)}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart(${item.id})">🗑</button>
+      </div>`).join('');
+  }
+  $('cart-total').textContent = fmtPrice(getCartTotal());
+  $('cart-checkout-btn').disabled = count === 0;
+}
+
+function toggleCart() {
+  $('cart-sidebar').classList.toggle('open');
+  $('cart-overlay').classList.toggle('open');
+}
+
+async function sepetKuponUygula() {
+  const code = $('cart-coupon').value.trim();
+  if (!code) return;
+  try {
+    const r = await fetch(`${API}/kupon-kontrol`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})});
+    const d = await r.json();
+    if (r.ok) {
+      cartCouponDiscount = d.discount_percent;
+      $('cart-coupon-result').innerHTML = `<span style="color:var(--green)">✓ %${d.discount_percent} indirim uygulandı!</span>`;
+      updateCartUI();
+    } else {
+      cartCouponDiscount = 0;
+      $('cart-coupon-result').innerHTML = `<span style="color:var(--red)">Geçersiz kupon.</span>`;
+    }
+  } catch { $('cart-coupon-result').innerHTML = `<span style="color:var(--red)">Hata oluştu.</span>`; }
+}
+
+// ── ÇOK ADIMLI CHECKOUT ───────────────────────────────────────
+function checkoutBaslat() {
+  if (!currentUser) { showPage('auth'); setAuthTab('login'); return; }
+  if (!cart.length) return;
+  toggleCart();
+  // Reset step
+  checkoutStep(1);
+  $('checkout-modal-bg').classList.add('open');
+}
+
+function selectPayMethod(method) {
+  selectedPayMethod = method;
+  ['kredi_karti','banka_havalesi','kapida_odeme'].forEach(m => {
+    const key = m === 'kredi_karti' ? 'kredi' : m === 'banka_havalesi' ? 'havale' : 'kapida';
+    $('pay-'+key).classList.toggle('selected', m===method);
+  });
+}
+
+function checkoutStep(step) {
+  // Update step dots
+  for (let i=1; i<=4; i++) {
+    const dot = $('stepdot-'+i);
+    dot.classList.remove('active','done');
+    if (i < step) dot.classList.add('done');
+    if (i === step) dot.classList.add('active');
+  }
+  // Hide all steps
+  for (let i=1; i<=4; i++) {
+    $('checkout-step-'+i).classList.remove('active');
+  }
+  $('checkout-step-'+step).classList.add('active');
+
+  if (step === 2) {
+    // Show correct payment form
+    ['kredi_karti','banka_havalesi','kapida_odeme'].forEach(m => {
+      $('form-'+m).style.display = m===selectedPayMethod ? 'block' : 'none';
+    });
+    $('havale-aciklama').textContent = `SIPARIS-${currentUser.id}-${Date.now().toString().slice(-6)}`;
+  }
+  if (step === 3) {
+    // Order summary
+    const summaryEl = $('co-order-summary');
+    summaryEl.innerHTML = cart.map(item => `
+      <div style="display:flex;justify-content:space-between;font-size:14px;padding:6px 0;border-bottom:1px solid var(--border-light)">
+        <span>${item.title} <span style="font-size:11px;color:var(--text-muted)">(${item.type==='artwork'?'Eser':'Etkinlik'})</span></span>
+        <span style="font-family:'Playfair Display',serif">${fmtPrice(item.price)}</span>
+      </div>`).join('');
+    if (cartCouponDiscount > 0) {
+      summaryEl.innerHTML += `<div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;color:var(--green)"><span>Kupon İndirimi (%${cartCouponDiscount})</span><span>-${fmtPrice(cart.reduce((s,c)=>s+c.price,0)*cartCouponDiscount/100)}</span></div>`;
+    }
+    $('co-total-3').textContent = fmtPrice(getCartTotal());
+    const payLabels = {kredi_karti:'💳 Kredi / Banka Kartı', banka_havalesi:'🏦 Banka Havalesi', kapida_odeme:'🚪 Kapıda Ödeme'};
+    $('co-pay-method-text').textContent = payLabels[selectedPayMethod]||selectedPayMethod;
+  }
+  if (step === 1) {
+    $('co-total-1').textContent = fmtPrice(getCartTotal());
+  }
+}
+
+async function odemeOnayla() {
+  const btn = $('co-confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'İşleniyor...';
+
+  let lastOrderId = null;
+  let hasError = false;
+  const couponCode = $('cart-coupon')?.value?.trim() || null;
+
+  try {
+    for (const item of cart) {
+      const body = {
+        user_id: currentUser.id,
+        payment_method: selectedPayMethod,
+        coupon_code: couponCode
+      };
+      if (item.artworkId) body.artwork_id = item.artworkId;
+      if (item.eventId)   body.event_id   = item.eventId;
+      const r = await fetch(`${API}/satin-al`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const d = await r.json();
+      if (r.ok) lastOrderId = d.order_id;
+      else hasError = true;
+    }
+
+    if (hasError) {
+      showNotif('Bazı ürünlerde ödeme hatası oluştu.', 'error');
+      return;
+    }
+
+    // Show kargo step differently for kapida_odeme
+    const kargoRow = $('co-step-kargo');
+    const teslimRow = $('co-step-teslim');
+    if (kargoRow) {
+      const kargoNum  = kargoRow.querySelector('.order-step-num');
+      const kargoText = kargoRow.querySelector('.order-step-text');
+      const kargoB    = kargoText ? kargoText.querySelector('b') : null;
+      if (selectedPayMethod === 'kapida_odeme') {
+        if (kargoNum)  kargoNum.style.background = 'var(--accent)';
+        if (kargoB)    kargoB.textContent = 'Kargoya Verilecek';
+        if (kargoText) { const last = kargoText.lastChild; if (last && last.nodeType===3) last.textContent='Siparişiniz kargoya verildiğinde kapıda ödeme yapacaksınız.'; }
+      } else if (selectedPayMethod === 'banka_havalesi') {
+        if (kargoB) kargoB.textContent = 'Havale Bekleniyor';
+        if (kargoText) { const last = kargoText.lastChild; if (last && last.nodeType===3) last.textContent='Havalenz onaylandıktan sonra kargoya verilecektir.'; }
+      }
+    }
+
+    $('co-order-id').textContent = '#' + (lastOrderId||Math.floor(Math.random()*90000+10000));
+    cart = []; cartCouponDiscount = 0;
+    updateCartUI();
+    checkoutStep(4);
+    showNotif('Siparişiniz alındı! 🎉');
+  } catch(err) {
+    console.error('Ödeme hatası:', err);
+    showNotif('Bağlantı hatası, tekrar deneyin.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Siparişi Onayla ✓';
+  }
+}
+
+function closeCheckoutModal(e) {
+  if (!e || e.target===$('checkout-modal-bg') || (e.target&&e.target.classList.contains('modal-close'))) {
+    $('checkout-modal-bg').classList.remove('open');
+  }
+}
+
+// Etkinlik kartından modal açmak için evObj referansı
+let eventsMap = {};
+
+// ── EVENT DETAIL MODAL ────────────────────────────────────────
+function openEventModal(id) {
+  const ev = allEvents.find(e => e.id===id);
+  if (!ev) return;
+  currentEvent = ev;
+  eventsMap[`ev_${id}`] = ev;
+
+  const types = {atolye:'Atölye',sergi:'Sergi',konferans:'Konferans',tur:'Tur'};
+  $('event-modal-type').textContent = types[ev.event_type]||ev.event_type;
+  $('event-modal-title').textContent = ev.title;
+  $('event-modal-img').src = `images/${ev.image_url||''}`;
+  $('event-modal-price').textContent = ev.price>0 ? fmtPrice(ev.price) : 'Ücretsiz';
+  $('event-modal-desc').textContent = ev.description||'';
+
+  const capacity = ev.capacity||1;
+  const reserved = ev.reserved_count||0;
+  const pct = Math.min(100, Math.round(reserved/capacity*100));
+  $('event-modal-cap-text').textContent = `${reserved} / ${capacity} kişi (${pct}% dolu)`;
+  $('event-modal-cap-fill').style.width = pct+'%';
+
+  $('event-modal-grid').innerHTML = `
+    <div class="event-detail-item"><label>Tarih</label><span>${fmtDate(ev.event_date)}</span></div>
+    <div class="event-detail-item"><label>Konum</label><span>${ev.location||'—'}</span></div>
+    <div class="event-detail-item"><label>Süre</label><span>${ev.duration_minutes||'—'} dakika</span></div>
+    <div class="event-detail-item"><label>Tür</label><span>${types[ev.event_type]||ev.event_type}</span></div>
+  `;
+
+  $('event-modal-bg').classList.add('open');
+}
+
+function closeEventModal(e) {
+  if (!e || e.target===$('event-modal-bg') || (e.target&&e.target.classList.contains('modal-close'))) {
+    $('event-modal-bg').classList.remove('open');
+  }
+}
+
+function openResModalFromEvent() {
+  if (!currentEvent) return;
+  closeEventModal();
+  openResModal(currentEvent.id, currentEvent.title, currentEvent.price);
+}
+
+// Eski modalSatinAl yerine
+function modalSepeteEkle() {
+  if (!currentEser) return;
+  const disc = currentEser.discount_percent > 0;
+  const price = disc ? Number(currentEser.price)*(1-currentEser.discount_percent/100) : Number(currentEser.price);
+  addArtworkToCart(currentEser.id, currentEser.title, price, `images/${currentEser.image_url}`);
+  closeModal();
+}
+
+// ── REZERVASYON ───────────────────────────────────────────────
+function openResModal(id, title, price) {
+  if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Rezervasyon için giriş yapın.','error'); return; }
+  resEventId = id; resEventPrice = price;
+  $('res-event-title').textContent = title;
+  $('res-msg').textContent='';
+  const today = new Date().toISOString().split('T')[0];
+  $('res-date').value = today;
+  $('res-date').min = today;
+  updateResTotal();
+  $('res-modal-bg').classList.add('open');
+}
+function closeResModal(e) { if (!e||e.target===$('res-modal-bg')||e.target.classList.contains('modal-close')) $('res-modal-bg').classList.remove('open'); }
+function updateResTotal() {
+  const cnt = parseInt($('res-count').value)||1;
+  $('res-total').textContent = resEventPrice > 0 ? fmtPrice(resEventPrice*cnt) : 'Ücretsiz';
+}
+$('res-count')?.addEventListener('input', updateResTotal);
+async function rezervasyonOlustur() {
+  const date = $('res-date').value, count = parseInt($('res-count').value)||1;
+  if (!date) { $('res-msg').innerHTML='<div class="form-msg error">Tarih seçin.</div>'; return; }
+  const r = await fetch(`${API}/rezervasyon`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:resEventId,participant_count:count,reservation_date:date})});
+  const d = await r.json();
+  if (r.ok) {
+    $('res-msg').innerHTML=`<div class="form-msg success">✓ Rezervasyon oluşturuldu! #${d.reservation_id}</div>`;
+    showNotif('Rezervasyon başarıyla oluşturuldu! 📅');
+    setTimeout(() => $('res-modal-bg').classList.remove('open'), 1500);
+  } else $('res-msg').innerHTML=`<div class="form-msg error">${d.detail||'Hata.'}</div>`;
+}
+
+// ── KAMPANYALAR ────────────────────────────────────────────────
+async function loadKampanyalar() {
+  try {
+    const r = await fetch(`${API}/kampanyalar`);
+    const list = await r.json();
+    $('coupon-row').innerHTML = list.length ? list.map(c => `
+      <div class="coupon-tag" onclick="copyCoupon('${c.code}')">
+        <small>%${c.discount_percent} İndirim</small>${c.code}
+      </div>`).join('') : '<span style="color:rgba(255,255,255,.5);font-size:13px">Aktif kampanya yok</span>';
+  } catch { $('coupon-row').innerHTML='<span style="color:rgba(255,255,255,.3);font-size:12px">Kampanyalar yüklenemedi</span>'; }
+}
+function copyCoupon(code) {
+  navigator.clipboard?.writeText(code).catch(()=>{});
+  showNotif(`Kupon kodu kopyalandı: ${code}`);
+}
+
+// ── İSTATİSTİKLER ─────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const r = await fetch(`${API}/istatistik`);
+    const d = await r.json();
+    $('stat-summary').innerHTML = `
+      <div class="stat-card"><div class="stat-num">${d.eserler.length}</div><div class="stat-label">Toplam Eser</div></div>
+      <div class="stat-card"><div class="stat-num">${d.etkinlikler.length}</div><div class="stat-label">Etkinlik</div></div>
+      <div class="stat-card"><div class="stat-num">${d.toplam_kullanici}</div><div class="stat-label">Kullanıcı</div></div>
+      <div class="stat-card"><div class="stat-num">${fmtPrice(d.toplam_ciro)}</div><div class="stat-label">Toplam Ciro</div></div>`;
+    const atbl = $('stats-artworks-table');
+    atbl.innerHTML = `<tr><th>Eser</th><th>Sanatçı</th><th>Fiyat</th><th>Görüntülenme</th><th>Favori</th><th>Yorum</th><th>Ort. Puan</th><th>Satış</th></tr>`;
+    d.eserler.forEach(e => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><b>${e.title}</b></td><td>${e.artist_name||'—'}</td><td>${fmtPrice(e.price)}</td><td>${e.view_count||0}</td><td>${e.favorite_count||0}</td><td>${e.review_count||0}</td><td style="color:var(--accent)">${Number(e.avg_rating).toFixed(1)} ${stars(e.avg_rating)}</td><td>${e.sale_count||0}</td>`;
+      atbl.appendChild(tr);
+    });
+    const etbl = $('stats-events-table');
+    etbl.innerHTML = `<tr><th>Etkinlik</th><th>Tarih</th><th>Kapasite</th><th>Rezervasyon</th><th>Doluluk</th><th>Ort. Puan</th></tr>`;
+    d.etkinlikler.forEach(e => {
+      const pct = e.capacity > 0 ? Math.round((e.total_participants||0)/e.capacity*100) : 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><b>${e.title}</b></td><td>${fmtDate(e.event_date)}</td><td>${e.capacity}</td><td>${e.reserved_count||0}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="capacity-bar" style="width:80px;display:inline-block"><div class="capacity-fill" style="width:${pct}%"></div></div> %${pct}</div></td><td style="color:var(--accent)">${Number(e.avg_rating).toFixed(1)} ${stars(e.avg_rating)}</td>`;
+      etbl.appendChild(tr);
+    });
+  } catch { $('stat-summary').innerHTML=errorMsg(); }
+}
+
+// ── DESTEK ────────────────────────────────────────────────────
+async function destekGonder() {
+  const name=$('support-name').value.trim(), email=$('support-email').value.trim(), msg=$('support-msg').value.trim();
+  if (!name||!email||!msg) { $('support-feedback').innerHTML='<div class="form-msg error">Tüm alanları doldurun.</div>'; return; }
+  const body = {name,email,message:msg};
+  if (currentUser) body.user_id = currentUser.id;
+  const r = await fetch(`${API}/destek-mesaji`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d = await r.json();
+  if (r.ok) {
+    $('support-feedback').innerHTML=`<div class="form-msg success">✓ Mesajınız alındı. Talep #${d.ticket_id}</div>`;
+    $('support-msg').value='';
+    if (currentUser) loadMyTickets();
+  } else $('support-feedback').innerHTML='<div class="form-msg error">Hata oluştu.</div>';
+}
+async function loadMyTickets() {
+  if (!currentUser) return;
+  $('my-tickets-section').style.display='block';
+  const r = await fetch(`${API}/destek-taleplerim/${currentUser.id}`);
+  const list = await r.json();
+  $('my-tickets').innerHTML = list.length ? list.map(t => `
+    <div style="background:var(--white);border:1px solid var(--border);padding:14px 18px;margin-bottom:10px;border-radius:8px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--text-muted)">${fmtDate(t.created_at)}</span>
+        <span class="status-badge ${t.status==='kapatıldı'?'onaylandi':'beklemede'}">${t.status}</span>
+      </div>
+      <div style="font-size:14px;margin-bottom:8px">${t.message}</div>
+      ${t.admin_reply ? `<div style="background:#e8f5e9;border-left:3px solid #4caf50;padding:10px 14px;border-radius:0 6px 6px 0;font-size:13px">
+        <b style="color:#2e7d32">💬 Destek Ekibi Cevabı:</b><br>${t.admin_reply}
+      </div>` : '<div style="font-size:12px;color:var(--text-muted);font-style:italic">⏳ Cevap bekleniyor...</div>'}
+    </div>`).join('') : '<div style="color:var(--text-muted);font-size:13px">Henüz talebiniz yok.</div>';
+}
+
+// ── CHAT ─────────────────────────────────────────────────────
+async function adminTicketCevapla(ticketId) {
+  const textarea = $('ticket-reply-'+ticketId);
+  const msg = $('ticket-reply-msg-'+ticketId);
+  const reply = textarea ? textarea.value.trim() : '';
+  if (!reply) { if (msg) msg.textContent = '⚠️ Cevap boş olamaz.'; return; }
+  if (msg) msg.textContent = 'Gönderiliyor...';
+  try {
+    const r = await fetch(`${API}/admin/ticket-cevapla/${ticketId}`, {
+      method: 'PUT', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({reply})
+    });
+    if (r.ok) {
+      if (msg) { msg.textContent = '✓ Cevap gönderildi!'; setTimeout(()=>loadAdminTickets(), 1200); }
+    } else { if (msg) msg.textContent = '⚠️ Hata oluştu.'; }
+  } catch { if (msg) msg.textContent = '⚠️ Bağlantı hatası.'; }
+}
+
+function toggleChat() { $('chat-widget').classList.toggle('open'); }
+
+// ── CANLI DESTEK — Claude AI ──────────────────────────────────
+let chatHistory = [];
+async function sendChat() {
+  const input = $('chat-input'), userMsg = input.value.trim();
+  if (!userMsg) return;
+  const msgs = $('chat-messages');
+  msgs.innerHTML += `<div class="chat-msg user">${userMsg}</div>`;
+  input.value = '';
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Yazıyor göstergesi
+  const typingId = 'typing-' + Date.now();
+  msgs.innerHTML += `<div class="chat-msg bot" id="${typingId}" style="color:var(--text-muted);font-style:italic">Yazıyor...</div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  chatHistory.push({role:'user', content: userMsg});
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Sen KTÜ Sanat Galerisi'nin canlı destek asistanısın. Adın "Sanat Asistanı". 
+Görevin: Kullanıcılara sanat eserleri, etkinlikler, satın alma, kargo, iade ve galeri hakkında yardımcı olmak.
+Galeri hakkında bilgiler:
+- Galeri adı: KTÜ Sanat Galerisi, Dijital Koleksiyon Arşivi
+- Rönesans'tan Modern Sanata kapsamlı koleksiyon
+- Eserler satın alınabilir, favorilere eklenebilir
+- Atölye ve etkinliklere rezervasyon yapılabilir
+- İndirim kuponları: SANAT10 (%10), KTU2025 (%20)
+- Destek için hesabım > destek formu kullanılabilir
+Kısa, samimi ve yardımsever cevaplar ver. Türkçe konuş.`,
+        messages: chatHistory
+      })
+    });
+    const data = await res.json();
+    const botReply = data.content?.[0]?.text || 'Üzgünüm, şu an cevap veremiyorum. Lütfen destek formunu kullanın.';
+    chatHistory.push({role:'assistant', content: botReply});
+    const typing = $(typingId);
+    if (typing) { typing.id=''; typing.style.cssText=''; typing.textContent=botReply; }
+  } catch {
+    const typing = $(typingId);
+    if (typing) { typing.textContent = 'Bağlantı hatası. Lütfen destek formumuzu kullanın.'; }
+  }
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── INIT ─────────────────────────────────────────────────────
+if (loadSession()) {
+  setLoggedIn(true);
+}
+loadEserler();
+loadEvents();
+loadKampanyalar();
+</script>
+</body>
+</html>
