@@ -1307,7 +1307,7 @@ async function girisYap() {
   } catch { msg.innerHTML='<div class="form-msg error">Sunucuya bağlanılamadı.</div>'; }
 }
 function logout() {
-  currentUser = null; saveSession(); setLoggedIn(false); showPage('home'); showNotif('Çıkış yapıldı.');
+  currentUser = null; saveSession(); setLoggedIn(false); $('login-pass').value = ''; showPage('home'); showNotif('Çıkış yapıldı.');
 }
 
 // ── ADMIN PANELİ ──────────────────────────────────────────────
