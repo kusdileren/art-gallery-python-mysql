@@ -23,7 +23,8 @@ app.add_middleware(
 # ─── MODELLER ───────────────────────────────────────────────
 class Review(BaseModel):
     user_id: int
-    artwork_id: int
+    artwork_id: Optional[int] = None
+    event_id: Optional[int] = None
     rating: int
     comment: str
 
@@ -536,17 +537,33 @@ def karsilastirma_gecmisi(user_id: int):
 # ─── MADDE 12: YORUM EKLEME ─────────────────────────────────
 @app.post("/yorum-yap")
 def yorum_yap(rev: Review):
+    if not rev.artwork_id and not rev.event_id:
+        raise HTTPException(status_code=400, detail="artwork_id veya event_id zorunludur")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    # Doğrulama: kullanıcı eseri satın almış mı?
-    cursor.execute("""
-        SELECT id FROM orders WHERE user_id=%s AND artwork_id=%s AND status='onaylandı'
-    """, (rev.user_id, rev.artwork_id))
-    is_verified = cursor.fetchone() is not None
-    cursor.execute("""
-        INSERT INTO reviews (user_id, artwork_id, rating, comment, is_verified)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (rev.user_id, rev.artwork_id, rev.rating, rev.comment, is_verified))
+
+    is_verified = False
+    if rev.artwork_id:
+        # Doğrulama: kullanıcı eseri satın almış mı?
+        cursor.execute("""
+            SELECT id FROM orders WHERE user_id=%s AND artwork_id=%s AND status='onaylandı'
+        """, (rev.user_id, rev.artwork_id))
+        is_verified = cursor.fetchone() is not None
+        cursor.execute("""
+            INSERT INTO reviews (user_id, artwork_id, rating, comment, is_verified)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (rev.user_id, rev.artwork_id, rev.rating, rev.comment, is_verified))
+    else:
+        # Doğrulama: kullanıcı etkinliğe rezervasyon yapmış mı?
+        cursor.execute("""
+            SELECT id FROM reservations WHERE user_id=%s AND event_id=%s AND status='onaylandı'
+        """, (rev.user_id, rev.event_id))
+        is_verified = cursor.fetchone() is not None
+        cursor.execute("""
+            INSERT INTO reviews (user_id, event_id, rating, comment, is_verified)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (rev.user_id, rev.event_id, rev.rating, rev.comment, is_verified))
+
     conn.commit()
     conn.close()
     return {"mesaj": "Yorum eklendi", "dogrulanmis": is_verified}
@@ -573,6 +590,32 @@ def yorumlar(artwork_id: int, siralama: str = "yeni"):
         GROUP BY r.id
         ORDER BY {order}
     """, (artwork_id,))
+    res = cursor.fetchall()
+    conn.close()
+    return res
+
+@app.get("/etkinlik-yorumlari/{event_id}")
+def etkinlik_yorumlari(event_id: int, siralama: str = "yeni"):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    order_map = {
+        "yeni": "r.created_at DESC",
+        "puan": "r.rating DESC",
+        "faydali": "helpful_count DESC"
+    }
+    order = order_map.get(siralama, "r.created_at DESC")
+    cursor.execute(f"""
+        SELECT r.*, u.full_name as user_name,
+               COUNT(rv.id) as helpful_count,
+               ra.reply as admin_reply, ra.created_at as reply_date
+        FROM reviews r
+        LEFT JOIN users u ON r.user_id = u.id
+        LEFT JOIN review_votes rv ON rv.review_id = r.id AND rv.is_helpful = 1
+        LEFT JOIN review_replies ra ON ra.review_id = r.id
+        WHERE r.event_id = %s
+        GROUP BY r.id
+        ORDER BY {order}
+    """, (event_id,))
     res = cursor.fetchall()
     conn.close()
     return res

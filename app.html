@@ -227,6 +227,10 @@
     .review-actions { display:flex; gap:8px; margin-top:8px; }
     .review-vote-btn { padding:4px 12px; border:1px solid var(--border); background:transparent; font-size:11px; cursor:pointer; color:var(--text-muted); transition:all .2s; }
     .review-vote-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .review-sort-bar { display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+    .review-sort-btn { padding:4px 12px; border:1px solid var(--border); background:transparent; font-size:11px; letter-spacing:.5px; cursor:pointer; color:var(--text-muted); transition:all .2s; border-radius:2px; }
+    .review-sort-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .review-sort-btn.active { background:var(--nav-bg); color:white; border-color:var(--nav-bg); }
     .review-reply { background:var(--cream); padding:12px 16px; margin-top:10px; border-left:3px solid var(--accent); }
     .review-reply-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--accent); margin-bottom:4px; }
     .review-form { margin-top:20px; }
@@ -1147,6 +1151,33 @@
           <span id="event-modal-cap-text"></span>
         </div>
         <div class="capacity-bar" style="height:8px"><div class="capacity-fill" id="event-modal-cap-fill"></div></div>
+      </div>
+      <!-- Yorumlar -->
+      <div style="margin-top:24px">
+        <div class="modal-tabs" id="event-modal-tabs">
+          <div class="modal-tab active" onclick="switchEventModalTab('reviews',this)">Yorumlar</div>
+          <div class="modal-tab" onclick="switchEventModalTab('writeReview',this)">Yorum Yap</div>
+        </div>
+        <div class="modal-tab-content active" id="event-modal-tab-reviews"></div>
+        <div class="modal-tab-content" id="event-modal-tab-writeReview">
+          <div id="event-review-auth-warning" style="display:none" class="form-msg error">Yorum yapabilmek için giriş yapmalısınız.</div>
+          <div id="event-review-form-inner">
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Puanınız:</p>
+            <div class="star-input">
+              <input type="radio" name="event-star" id="ev-star5" value="5"><label for="ev-star5">★</label>
+              <input type="radio" name="event-star" id="ev-star4" value="4"><label for="ev-star4">★</label>
+              <input type="radio" name="event-star" id="ev-star3" value="3"><label for="ev-star3">★</label>
+              <input type="radio" name="event-star" id="ev-star2" value="2"><label for="ev-star2">★</label>
+              <input type="radio" name="event-star" id="ev-star1" value="1"><label for="ev-star1">★</label>
+            </div>
+            <div class="form-group">
+              <label>Yorumunuz</label>
+              <textarea id="event-review-comment" placeholder="Bu etkinlik hakkında düşüncelerinizi paylaşın..." style="min-height:80px"></textarea>
+            </div>
+            <button class="btn-dark" onclick="etkinlikYorumGonder()">Yorumu Gönder</button>
+            <div id="event-review-msg"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -2269,24 +2300,43 @@ function switchModalTab(name, btn) {
   btn.classList.add('active');
   $('modal-tab-'+name).classList.add('active');
 }
-async function loadModalReviews(artworkId) {
+function reviewSortBar(activeSiralama, fnName, fnArg, onlyVerified) {
+  const opts = [['yeni','En Yeni'],['puan','En Yüksek Puan'],['faydali','En Faydalı']];
+  const btns = opts.map(([val,label]) =>
+    `<button class="review-sort-btn${activeSiralama===val?' active':''}" data-sort="${val}" onclick="${fnName}(${fnArg},'${val}',${!!onlyVerified})">${label}</button>`
+  ).join('');
+  const chk = `<label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);cursor:pointer;margin-left:auto">
+    <input type="checkbox" ${onlyVerified?'checked':''} onchange="${fnName}(${fnArg},'${activeSiralama}',this.checked)" style="accent-color:var(--accent);cursor:pointer">
+    <span style="color:var(--green)">✓</span> Sadece doğrulanmış
+  </label>`;
+  return `<div class="review-sort-bar">${btns}${chk}</div>`;
+}
+function reviewItemHTML(rev, voteFn) {
+  return `
+    <div class="review-item">
+      <div class="review-header">
+        <span class="review-user">${rev.user_name||'Anonim'} ${rev.is_verified?'<span style="font-size:10px;color:var(--green);letter-spacing:1px">✓ Doğrulanmış Alıcı</span>':''}</span>
+        <span class="review-date">${fmtDate(rev.created_at)}</span>
+      </div>
+      <div class="review-stars">${stars(rev.rating)}</div>
+      <div class="review-comment">${rev.comment}</div>
+      ${rev.admin_reply?`<div class="review-reply"><div class="review-reply-label">Galeri Yanıtı</div>${rev.admin_reply}</div>`:''}
+      <div class="review-actions">
+        <button class="review-vote-btn" onclick="${voteFn}(${rev.id},true)">👍 Faydalı (${rev.helpful_count||0})</button>
+        <button class="review-vote-btn" onclick="${voteFn}(${rev.id},false)">👎</button>
+      </div>
+    </div>`;
+}
+async function loadModalReviews(artworkId, siralama='yeni', onlyVerified=false) {
   try {
-    const r = await fetch(`${API}/yorumlar/${artworkId}?siralama=yeni`);
-    const list = await r.json();
-    $('modal-tab-reviews').innerHTML = list.length ? list.map(rev => `
-      <div class="review-item">
-        <div class="review-header">
-          <span class="review-user">${rev.user_name||'Anonim'} ${rev.is_verified?'<span style="font-size:10px;color:var(--green);letter-spacing:1px">✓ Doğrulanmış</span>':''}</span>
-          <span class="review-date">${fmtDate(rev.created_at)}</span>
-        </div>
-        <div class="review-stars">${stars(rev.rating)}</div>
-        <div class="review-comment">${rev.comment}</div>
-        ${rev.admin_reply ? `<div class="review-reply"><div class="review-reply-label">Galeri Yanıtı</div>${rev.admin_reply}</div>` : ''}
-        <div class="review-actions">
-          <button class="review-vote-btn" onclick="oyVer(${rev.id},true)">👍 Faydalı (${rev.helpful_count||0})</button>
-          <button class="review-vote-btn" onclick="oyVer(${rev.id},false)">👎</button>
-        </div>
-      </div>`).join('') : '<div style="color:var(--text-muted);font-size:14px;padding:20px 0">Henüz yorum yapılmamış. İlk yorumu siz yapın!</div>';
+    const r = await fetch(`${API}/yorumlar/${artworkId}?siralama=${siralama}`);
+    let list = await r.json();
+    if (onlyVerified) list = list.filter(r => r.is_verified);
+    $('modal-tab-reviews').innerHTML =
+      reviewSortBar(siralama, 'loadModalReviews', artworkId, onlyVerified) +
+      (list.length
+        ? list.map(rev => reviewItemHTML(rev, 'oyVer')).join('')
+        : '<div style="color:var(--text-muted);font-size:14px;padding:20px 0">Henüz yorum yapılmamış. İlk yorumu siz yapın!</div>');
   } catch { $('modal-tab-reviews').innerHTML='<div style="color:var(--text-muted)">Yorumlar yüklenemedi.</div>'; }
 }
 async function loadModalStats(artworkId) {
@@ -2316,7 +2366,12 @@ async function oyVer(reviewId, isHelpful) {
   if (!currentUser) { showNotif('Oy vermek için giriş yapın.','error'); return; }
   await fetch(`${API}/yorum-oy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_id:reviewId,user_id:currentUser.id,is_helpful:isHelpful})});
   showNotif('Oyunuz kaydedildi.');
-  if (currentEser) await loadModalReviews(currentEser.id);
+  if (currentEser) {
+    const activeBtn = document.querySelector('#modal-tab-reviews .review-sort-btn.active');
+    const activeSort = activeBtn?.dataset?.sort || 'yeni';
+    const onlyVerified = !!document.querySelector('#modal-tab-reviews input[type=checkbox]')?.checked;
+    await loadModalReviews(currentEser.id, activeSort, onlyVerified);
+  }
 }
 async function yorumGonder() {
   if (!currentUser) { showNotif('Yorum için giriş yapın.','error'); return; }
@@ -2755,6 +2810,15 @@ function openEventModal(id) {
     cmpBtn.style.color = inCompare ? 'white' : '';
   }
 
+  // Yorum sekmelerini sıfırla
+  document.querySelectorAll('#event-modal-tabs .modal-tab').forEach((t,i) => t.classList.toggle('active', i===0));
+  document.querySelectorAll('#event-modal-bg .modal-tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
+  // Auth kontrolü
+  if (!currentUser) { $('event-review-auth-warning').style.display='block'; $('event-review-form-inner').style.display='none'; }
+  else { $('event-review-auth-warning').style.display='none'; $('event-review-form-inner').style.display='block'; }
+  // Yorumları yükle
+  loadEventModalReviews(ev.id);
+
   $('event-modal-bg').classList.add('open');
 }
 
@@ -2762,6 +2826,56 @@ function closeEventModal(e) {
   if (!e || e.target===$('event-modal-bg') || (e.target&&e.target.classList.contains('modal-close'))) {
     $('event-modal-bg').classList.remove('open');
   }
+}
+
+function switchEventModalTab(name, btn) {
+  document.querySelectorAll('#event-modal-tabs .modal-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('#event-modal-bg .modal-tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  $('event-modal-tab-'+name).classList.add('active');
+}
+
+async function loadEventModalReviews(eventId, siralama='yeni', onlyVerified=false) {
+  const container = $('event-modal-tab-reviews');
+  if (!container) return;
+  container.innerHTML = '<div class="loading"><div class="spinner"></div>Yorumlar yükleniyor...</div>';
+  try {
+    const r = await fetch(`${API}/etkinlik-yorumlari/${eventId}?siralama=${siralama}`);
+    let list = await r.json();
+    if (onlyVerified) list = list.filter(r => r.is_verified);
+    container.innerHTML =
+      reviewSortBar(siralama, 'loadEventModalReviews', eventId, onlyVerified) +
+      (list.length
+        ? list.map(rev => reviewItemHTML(rev, 'oyVerEtkinlik')).join('')
+        : '<div style="color:var(--text-muted);font-size:14px;padding:20px 0">Henüz yorum yapılmamış. İlk yorumu siz yapın!</div>');
+  } catch { container.innerHTML='<div style="color:var(--text-muted)">Yorumlar yüklenemedi.</div>'; }
+}
+
+async function oyVerEtkinlik(reviewId, isHelpful) {
+  if (!currentUser) { showNotif('Oy vermek için giriş yapın.','error'); return; }
+  await fetch(`${API}/yorum-oy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_id:reviewId,user_id:currentUser.id,is_helpful:isHelpful})});
+  showNotif('Oyunuz kaydedildi.');
+  if (currentEvent) {
+    const activeBtn = document.querySelector('#event-modal-tab-reviews .review-sort-btn.active');
+    const activeSort = activeBtn?.dataset?.sort || 'yeni';
+    const onlyVerified = !!document.querySelector('#event-modal-tab-reviews input[type=checkbox]')?.checked;
+    await loadEventModalReviews(currentEvent.id, activeSort, onlyVerified);
+  }
+}
+
+async function etkinlikYorumGonder() {
+  if (!currentUser) { showNotif('Yorum için giriş yapın.','error'); return; }
+  const rating = document.querySelector('input[name="event-star"]:checked')?.value;
+  const comment = $('event-review-comment').value.trim();
+  if (!rating || !comment) { $('event-review-msg').innerHTML='<div class="form-msg error">Puan ve yorum zorunludur.</div>'; return; }
+  const r = await fetch(`${API}/yorum-yap`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:currentEvent.id,rating:parseInt(rating),comment})});
+  const d = await r.json();
+  $('event-review-msg').innerHTML = r.ok
+    ? `<div class="form-msg success">✓ ${d.mesaj}${d.dogrulanmis?' (Doğrulanmış katılımcı)':''}</div>`
+    : '<div class="form-msg error">Hata oluştu.</div>';
+  $('event-review-comment').value='';
+  document.querySelectorAll('input[name="event-star"]').forEach(s => s.checked=false);
+  await loadEventModalReviews(currentEvent.id);
 }
 
 function openResModalFromEvent() {
