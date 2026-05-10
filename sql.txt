@@ -184,7 +184,7 @@ INSERT INTO users (full_name, email, password, role) VALUES
 ('Ali Yılmaz', 'ali@mail.com',     '123456',   'kullanici'),
 ('Ayşe Kara',  'ayse@mail.com',    '123456',   'kullanici');
 
--- ── Sanatçılar ───────────────────────────────────────────────────
+-- ── Sanatçılar (Toplam 16) ───────────────────────────────────────
 INSERT INTO artists (name, bio, birth_year, nationality) VALUES
 ('Leonardo da Vinci',  'Italyan Ronesans ustasi. Ressam, bilim insani ve mucit.',                        1452, 'İtalyan'),
 ('Vincent van Gogh',   'Post-empresyonizmin öncüsü. Canli renkleri ve yogun firca darbeleriyle taninir.',1853, 'Hollandalı'),
@@ -194,9 +194,16 @@ INSERT INTO artists (name, bio, birth_year, nationality) VALUES
 ('Salvador Dali',      'Sürrealizmin en taninan ismi; bilincdisi ve rüya imgelerini tuvallestirdi.',     1904, 'İspanyol'),
 ('Gustav Klimt',       'Viyana Sezesyon hareketinin önderi; altin yaprak kullanimiyla ünlü.',            1862, 'Avusturyalı'),
 ('Sandro Botticelli',  'Italyan Erken Ronesans ustasi; mitolojik sahneleriyle taninir.',                 1445, 'İtalyan'),
-('Osman Hamdi Bey',    'Osmanli döneminin önemli ressami ve müzeci.',                                    1842, 'Türk');
+('Osman Hamdi Bey',    'Osmanli döneminin önemli ressami ve müzeci.',                                    1842, 'Türk'),
+('Zerhaki',            'Pixelart sanatçısı',                                                             2004, 'Türk'),
+('İbrahim Çallı',      'Türk resminde Çallı Kuşağı olarak bilinen akımın öncüsü, bağımsızlık ruhunu yansıtan usta.', 1882, 'Türk'),
+('Claude Monet',       'Empresyonizm (İzlenimcilik) akımının isim babası ve kurucusu.',                  1840, 'Fransız'),
+('Pablo Picasso',      'Kübizm akımının yaratıcısı, 20. yüzyılın en üretken dehası.',                    1881, 'İspanyol'),
+('Johannes Vermeer',   'Işığı ustalıkla kullanan Hollandalı Barok ressamı.',                             1632, 'Hollandalı'),
+('Frida Kahlo',        'Kendi acılarını ve kültürünü yansıtan sürrealist ikon.',                         1907, 'Meksikalı'),
+('Rembrandt',          'Işığın ve gölgelerin efendisi, Hollanda Altın Çağı ressamı.',                    1606, 'Hollandalı');
 
--- ── Kategoriler ──────────────────────────────────────────────────
+-- ── Kategoriler (Toplam 11) ──────────────────────────────────────
 INSERT INTO categories (name) VALUES
 ('Rönesans'),          -- 1
 ('Post-Empresyonizm'), -- 2
@@ -204,64 +211,46 @@ INSERT INTO categories (name) VALUES
 ('Sürrealizm'),        -- 4
 ('Sembolizm'),         -- 5
 ('Türk Resim Sanatı'), -- 6
-('Modern Sanat');      -- 7
+('Modern Sanat'),      -- 7
+('Pixelart'),          -- 8
+('Empresyonizm'),      -- 9
+('Kübizm'),            -- 10
+('Barok');             -- 11
 
--- ── Eserler (11 adet — images/ klasörüyle birebir eşleşir) ───────
+-- ── Eserler (Toplam 32) ──────────────────────────────────────────
 INSERT INTO artworks (title, artist_id, category_id, description, price, image_url, year_created, medium, dimensions, discount_percent, stock) VALUES
-('Mona Lisa',
- 1, 1,
- 'Dünyanın en tanınan tablosu. Gizemli gülüşüyle yüzyıllardır büyülüyor.',
- 150000.00, 'Mona_Lisa.jpg', 1503, 'Yağlıboya', '77x53 cm', 0, 1),
-
-('Yıldızlı Gece',
- 2, 2,
- 'Sarmal bulutlar ve parlak yıldızlarla dolu mistik bir gece manzarası.',
- 120000.00, 'Yildizli_Gece.jpg', 1889, 'Yağlıboya', '73x92 cm', 10, 1),
-
-('Çığlık',
- 3, 3,
- 'Modern insanın varoluşsal kaygısını simgeleyen ikonik ekspresyonist şaheser.',
- 180000.00, 'ciglik.jpg', 1893, 'Yağlıboya ve pastel', '91x73 cm', 0, 1),
-
-('Atina Okulu',
- 4, 1,
- 'Antik Yunan filozoflarini bir arada gösteren Ronesansin en büyük fresklerinden biri.',
- 250000.00, 'atina_okulu.jpg', 1511, 'Fresk', '500x770 cm', 5, 1),
-
-('Ademin Yaratilisi',
- 5, 1,
- 'Sistine Sapeli tavanindaki ikonik sahne; Tanri ile Ademin parmak uclarinin bulusmasi.',
- 300000.00, 'adem_yaratilis.jpg', 1512, 'Fresk', '280x570 cm', 0, 1),
-
-('Bellegin Azmi',
- 6, 4,
- 'Eriyen saatlerle zamanın göreceliğini sorgulayan sürrealizmin simge tablosu.',
- 220000.00, 'bellegin_azmi.jpg', 1931, 'Yağlıboya', '24x33 cm', 15, 1),
-
-('Öpücük',
- 7, 5,
- 'Altin yapraklara sarılmış, birbirine kavuşmuş iki figürü yansıtan romantik şaheser.',
- 195000.00, 'opucuk.jpg', 1908, 'Yağlıboya ve altin yaprak', '180x180 cm', 0, 1),
-
-('Venüsün Dogusu',
- 8, 1,
- 'Denizden cikan güzellik tanrıçasını betimleyen Botticellinin basyapiti.',
- 175000.00, 'venusun_dogusu.jpg', 1485, 'Tempera', '172x278 cm', 10, 1),
-
-('Kaplumbağa Terbiyecisi',
- 9, 6,
- 'Osmanlı kültüründen bir sahne. Milli Saraylar koleksiyonunun gözbebeği.',
- 95000.00, 'Kaplumbaga_terbiyecisi.jpg', 1906, 'Yağlıboya', '221x320 cm', 15, 1),
-
-('Son Aksam Yemegi',
- 1, 1,
- 'Isa ve havarileri son yemekte gösteren anitsal Ronesans eseri.',
- 280000.00, 'son_aksam_yemegi.jpg', 1498, 'Tempera ve yağlıboya', '460x880 cm', 0, 1),
-
-('Galeri No. 13',
- NULL, 7,
- 'Cagdas Türk sanatından soyut bir kompozisyon; renk ve form dengesiyle dikkat cekiyor.',
- 45000.00, 'galeri_13.jpg', 2020, 'Akrilik', '100x100 cm', 20, 3);
+('Mona Lisa', 1, 1, 'Dünyanın en tanınan tablosu. Gizemli gülüşüyle yüzyıllardır büyülüyor.', 150000.00, 'Mona_Lisa.jpg', 1503, 'Yağlıboya', '77x53 cm', 0, 1),
+('Yıldızlı Gece', 2, 2, 'Sarmal bulutlar ve parlak yıldızlarla dolu mistik bir gece manzarası.', 120000.00, 'Yildizli_Gece.jpg', 1889, 'Yağlıboya', '73x92 cm', 10, 1),
+('Çığlık', 3, 3, 'Modern insanın varoluşsal kaygısını simgeleyen ikonik ekspresyonist şaheser.', 180000.00, 'ciglik.jpg', 1893, 'Yağlıboya ve pastel', '91x73 cm', 0, 1),
+('Atina Okulu', 4, 1, 'Antik Yunan filozoflarini bir arada gösteren Ronesansin en büyük fresklerinden biri.', 250000.00, 'atina_okulu.jpg', 1511, 'Fresk', '500x770 cm', 5, 1),
+('Ademin Yaratilisi', 5, 1, 'Sistine Sapeli tavanindaki ikonik sahne; Tanri ile Ademin parmak uclarinin bulusmasi.', 300000.00, 'adem_yaratilis.jpg', 1512, 'Fresk', '280x570 cm', 0, 1),
+('Bellegin Azmi', 6, 4, 'Eriyen saatlerle zamanın göreceliğini sorgulayan sürrealizmin simge tablosu.', 220000.00, 'bellegin_azmi.jpg', 1931, 'Yağlıboya', '24x33 cm', 15, 1),
+('Öpücük', 7, 5, 'Altin yapraklara sarılmış, birbirine kavuşmuş iki figürü yansıtan romantik şaheser.', 195000.00, 'opucuk.jpg', 1908, 'Yağlıboya ve altin yaprak', '180x180 cm', 0, 1),
+('Venüsün Dogusu', 8, 1, 'Denizden cikan güzellik tanrıçasını betimleyen Botticellinin basyapiti.', 175000.00, 'venusun_dogusu.jpg', 1485, 'Tempera', '172x278 cm', 10, 1),
+('Kaplumbağa Terbiyecisi', 9, 6, 'Osmanlı kültüründen bir sahne. Milli Saraylar koleksiyonunun gözbebeği.', 95000.00, 'Kaplumbaga_terbiyecisi.jpg', 1906, 'Yağlıboya', '221x320 cm', 15, 1),
+('Son Aksam Yemegi', 1, 1, 'Isa ve havarileri son yemekte gösteren anitsal Ronesans eseri.', 280000.00, 'son_aksam_yemegi.jpg', 1498, 'Tempera ve yağlıboya', '460x880 cm', 0, 1),
+('Galeri No. 13', NULL, 7, 'Cagdas Türk sanatından soyut bir kompozisyon; renk ve form dengesiyle dikkat cekiyor.', 45000.00, 'galeri_13.jpg', 2020, 'Akrilik', '100x100 cm', 20, 3),
+('Karanlığın Çağrısı', 10, 8, 'Sanatçının acemilik dönemi eseri', 100.00, 'karanlıgın_cagrisi.png', 2020, 'Pixel', '100x100', 0, 1000),
+('Mustafa Kemal Atatürk Portresi', 11, 6, 'Cumhuriyet tarihinin en önemli siyasi ve askeri lideri olan Gazi Mustafa Kemal Atatürk\'ün bu eşsiz portresi, dönemin vizyonunu ve kararlılığını tuvale yansıtıyor.', 150000.00, 'ataturk_portre.jpg', 1930, 'Yağlıboya', '100x80 cm', 0, 1),
+('Zeybekler Kurtuluş Savaşı\'nda', 11, 6, 'Milli Mücadele yıllarının fedakarlıklarını ve Anadolu insanının direnişini resmeden destansı bir çalışma.', 180000.00, 'zeybekler.jpg', 1923, 'Yağlıboya', '150x200 cm', 5, 1),
+('Celile Hanım Portresi', 9, 6, 'Osman Hamdi Bey\'in fırçasından, dönemin zarafetini yansıtan çok özel bir portre çalışması.', 85000.00, 'celile_hanim.jpg', 1885, 'Yağlıboya', '60x45 cm', 0, 1),
+('İnci Küpeli Kız', 14, 11, 'Kuzeyin Mona Lisası olarak bilinen, ışığın ve masumiyetin muazzam bir tasviri.', 450000.00, 'inci_kupeli.jpg', 1665, 'Yağlıboya', '44x39 cm', 0, 1),
+('Süt Döken Kadın', 14, 11, 'Gündelik bir anın Barok ışığı altında nasıl şahesere dönüştüğünün kanıtı.', 320000.00, 'sut_doken.jpg', 1658, 'Yağlıboya', '45x41 cm', 10, 1),
+('Gece Devriyesi', 16, 11, 'Hareket ve ışık kullanımında çığır açan devasa boyutlu bir askeri birlik tablosu.', 850000.00, 'gece_devriyesi.jpg', 1642, 'Yağlıboya', '363x437 cm', 0, 1),
+('İzlenim: Gün Doğumu', 12, 9, 'Tüm bir sanat akımına adını veren, sise gömülmüş bir liman manzarası.', 280000.00, 'gun_dogumu.jpg', 1872, 'Yağlıboya', '48x63 cm', 15, 1),
+('Nilüferler', 12, 9, 'Monet\'nin kendi bahçesindeki su zambaklarını resmettiği huzur dolu kompozisyon.', 350000.00, 'niluferler.jpg', 1919, 'Yağlıboya', '100x200 cm', 0, 1),
+('Guernica', 13, 10, 'Savaşın yıkıcılığını ve hüznünü geometrik formlarla anlatan anıtsal bir çığlık.', 950000.00, 'guernica.jpg', 1937, 'Yağlıboya', '349x776 cm', 0, 1),
+('Avignonlu Kızlar', 13, 10, 'Modern sanatın doğuşunu müjdeleyen, perspektifin parçalandığı devrim niteliğinde bir eser.', 650000.00, 'avignon.jpg', 1907, 'Yağlıboya', '243x233 cm', 10, 1),
+('Ağlayan Kadın', 13, 10, 'Dora Maar\'ın yüzündeki hüznün kübist bir parçalanmayla tuvale aktarımı.', 420000.00, 'aglayan_kadin.jpg', 1937, 'Yağlıboya', '60x49 cm', 0, 1),
+('İki Frida', 15, 4, 'Sanatçının içsel bölünmüşlüğünü ve kimlik çatışmasını anlatan çifte otoportre.', 380000.00, 'iki_frida.jpg', 1939, 'Yağlıboya', '173x173 cm', 0, 1),
+('Dikenli Kolye ile Otoportre', 15, 4, 'Meksika ormanının gizemini ve sanatçının fiziksel acılarını simgeleyen ikonik eser.', 290000.00, 'frida_dikenli.jpg', 1940, 'Yağlıboya', '61x47 cm', 20, 1),
+('Uyku', 6, 4, 'Bilinçaltının derinliklerindeki rüyaların gerçeküstü bir dille yorumlanması.', 310000.00, 'uyku_dali.jpg', 1937, 'Yağlıboya', '51x78 cm', 0, 1),
+('Ayçiçekleri', 2, 2, 'Sarının en canlı tonlarıyla umudu ve yaşam enerjisini simgeleyen natürmort.', 480000.00, 'aycicekleri.jpg', 1888, 'Yağlıboya', '92x73 cm', 5, 1),
+('Gece Kafesi', 2, 2, 'Arles şehrindeki bir kafenin sarı sıcak ışığıyla gecenin lacivertinin eşsiz zıtlığı.', 520000.00, 'gece_kafesi.jpg', 1888, 'Yağlıboya', '81x65 cm', 0, 1),
+('İlkbahar (Primavera)', 8, 1, 'Mitolojik figürlerin bir ormanda baharın gelişini kutladığı zarif Rönesans eseri.', 600000.00, 'primavera.jpg', 1482, 'Tempera', '202x314 cm', 0, 1),
+('Vitruvius Adamı', 1, 1, 'İnsan vücudunun altın oranını gösteren, sanat ve bilimin kusursuz birleşimi.', 120000.00, 'vitruvius.jpg', 1490, 'Mürekkep', '34x24 cm', 15, 1),
+('Hayatın Dansı', 3, 3, 'Aşk, gençlik ve ölüm döngüsünün dışavurumcu bir yaklaşımla işlendiği kompozisyon.', 250000.00, 'hayatin_dansi.jpg', 1899, 'Yağlıboya', '125x191 cm', 0, 1),
+('Adele Bloch-Bauer I', 7, 5, 'Altın yaprakların yoğun olarak kullanıldığı, Viyana Sezesyonunun parlayan yıldızı.', 750000.00, 'adele.jpg', 1907, 'Yağlıboya ve Altın', '138x138 cm', 0, 1);
 
 -- ── Etkinlikler (15 adet) ─────────────────────────────────────────
 INSERT INTO events (title, description, event_type, event_date, duration_minutes, location, capacity, price, image_url, discount_percent) VALUES
