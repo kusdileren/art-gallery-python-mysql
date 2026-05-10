@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
--- Host: localhost    Database: sanat_galerisi
+-- Host: 127.0.0.1    Database: sanat_galerisi
 -- ------------------------------------------------------
 -- Server version	8.0.46
 
@@ -24,10 +24,10 @@ DROP TABLE IF EXISTS `artists`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `artists` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(120) COLLATE utf8mb4_turkish_ci NOT NULL,
-  `bio` text COLLATE utf8mb4_turkish_ci,
+  `name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `bio` text CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci,
   `birth_year` int DEFAULT NULL,
-  `nationality` varchar(80) COLLATE utf8mb4_turkish_ci DEFAULT NULL,
+  `nationality` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -78,15 +78,15 @@ DROP TABLE IF EXISTS `artworks`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `artworks` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(200) COLLATE utf8mb4_turkish_ci NOT NULL,
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
   `artist_id` int DEFAULT NULL,
   `category_id` int DEFAULT NULL,
-  `description` text COLLATE utf8mb4_turkish_ci,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci,
   `price` decimal(12,2) NOT NULL,
-  `image_url` varchar(300) COLLATE utf8mb4_turkish_ci DEFAULT NULL,
+  `image_url` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT NULL,
   `year_created` int DEFAULT NULL,
-  `medium` varchar(100) COLLATE utf8mb4_turkish_ci DEFAULT NULL,
-  `dimensions` varchar(80) COLLATE utf8mb4_turkish_ci DEFAULT NULL,
+  `medium` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT NULL,
+  `dimensions` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT NULL,
   `discount_percent` int DEFAULT '0',
   `stock` int DEFAULT '1',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -117,7 +117,7 @@ DROP TABLE IF EXISTS `categories`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `categories` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(80) COLLATE utf8mb4_turkish_ci NOT NULL,
+  `name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -142,7 +142,7 @@ DROP TABLE IF EXISTS `comparison_history`;
 CREATE TABLE `comparison_history` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
-  `comparison_type` enum('artworks','events') COLLATE utf8mb4_turkish_ci NOT NULL,
+  `comparison_type` enum('artworks','events') CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
   `item_ids` json NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -170,12 +170,12 @@ DROP TABLE IF EXISTS `coupons`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `coupons` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `code` varchar(50) COLLATE utf8mb4_turkish_ci NOT NULL,
+  `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
   `discount_percent` int NOT NULL,
   `is_active` tinyint DEFAULT '1',
   `is_public` tinyint DEFAULT '1',
   `expires_at` date DEFAULT NULL,
-  `description` varchar(200) COLLATE utf8mb4_turkish_ci DEFAULT NULL,
+  `description` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `code` (`code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
@@ -200,15 +200,15 @@ DROP TABLE IF EXISTS `events`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `events` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `title` varchar(200) COLLATE utf8mb4_turkish_ci NOT NULL,
-  `description` text COLLATE utf8mb4_turkish_ci,
-  `event_type` enum('atolye','sergi','konferans','tur') COLLATE utf8mb4_turkish_ci DEFAULT 'atolye',
+  `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci,
+  `event_type` enum('atolye','sergi','konferans','tur') CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT 'atolye',
   `event_date` datetime NOT NULL,
   `duration_minutes` int DEFAULT '120',
-  `location` varchar(200) COLLATE utf8mb4_turkish_ci DEFAULT NULL,
+  `location` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT NULL,
   `capacity` int NOT NULL,
   `price` decimal(10,2) DEFAULT '0.00',
-  `image_url` varchar(300) COLLATE utf8mb4_turkish_ci DEFAULT NULL,
+  `image_url` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT NULL,
   `discount_percent` int DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -267,8 +267,8 @@ CREATE TABLE `orders` (
   `artwork_id` int DEFAULT NULL,
   `event_id` int DEFAULT NULL,
   `amount` decimal(12,2) NOT NULL,
-  `payment_method` enum('kredi_karti','banka_havalesi','kapida_odeme') COLLATE utf8mb4_turkish_ci DEFAULT 'kredi_karti',
-  `status` enum('beklemede','onaylandı','kargoda','teslim_edildi','iptal') COLLATE utf8mb4_turkish_ci DEFAULT 'beklemede',
+  `payment_method` enum('kredi_karti','banka_havalesi','kapida_odeme') CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT 'kredi_karti',
+  `status` enum('beklemede','onaylandı','kargoda','teslim_edildi','iptal') CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT 'beklemede',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
@@ -277,7 +277,7 @@ CREATE TABLE `orders` (
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`artwork_id`) REFERENCES `artworks` (`id`),
   CONSTRAINT `orders_ibfk_3` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -286,7 +286,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,2,1,NULL,150000.00,'kredi_karti','onaylandı','2026-05-09 19:27:38'),(2,2,NULL,1,450.00,'kredi_karti','onaylandı','2026-05-09 19:27:38'),(3,3,2,NULL,108000.00,'banka_havalesi','kargoda','2026-05-09 19:27:38'),(4,3,NULL,6,0.00,'kredi_karti','onaylandı','2026-05-09 19:27:38');
+INSERT INTO `orders` VALUES (1,2,1,NULL,150000.00,'kredi_karti','onaylandı','2026-05-09 19:27:38'),(2,2,NULL,1,450.00,'kredi_karti','onaylandı','2026-05-09 19:27:38'),(3,3,2,NULL,108000.00,'banka_havalesi','kargoda','2026-05-09 19:27:38'),(4,3,NULL,6,0.00,'kredi_karti','onaylandı','2026-05-09 19:27:38'),(5,1,1,NULL,150000.00,'kredi_karti','onaylandı','2026-05-10 21:40:50'),(6,1,2,NULL,120000.00,'kredi_karti','onaylandı','2026-05-10 21:40:50'),(7,1,3,NULL,180000.00,'kredi_karti','onaylandı','2026-05-10 21:40:50');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -303,7 +303,7 @@ CREATE TABLE `reservations` (
   `event_id` int NOT NULL,
   `participant_count` int DEFAULT '1',
   `reservation_date` date NOT NULL,
-  `status` enum('beklemede','onaylandı','iptal') COLLATE utf8mb4_turkish_ci DEFAULT 'beklemede',
+  `status` enum('beklemede','onaylandı','iptal') CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT 'beklemede',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
@@ -334,7 +334,7 @@ CREATE TABLE `review_replies` (
   `id` int NOT NULL AUTO_INCREMENT,
   `review_id` int NOT NULL,
   `admin_id` int NOT NULL,
-  `reply` text COLLATE utf8mb4_turkish_ci NOT NULL,
+  `reply` text CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -397,7 +397,7 @@ CREATE TABLE `reviews` (
   `artwork_id` int DEFAULT NULL,
   `event_id` int DEFAULT NULL,
   `rating` tinyint NOT NULL,
-  `comment` text COLLATE utf8mb4_turkish_ci NOT NULL,
+  `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
   `is_verified` tinyint DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -431,17 +431,17 @@ DROP TABLE IF EXISTS `support_tickets`;
 CREATE TABLE `support_tickets` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int DEFAULT NULL,
-  `name` varchar(120) COLLATE utf8mb4_turkish_ci NOT NULL,
-  `email` varchar(180) COLLATE utf8mb4_turkish_ci NOT NULL,
-  `message` text COLLATE utf8mb4_turkish_ci NOT NULL,
-  `status` enum('açık','işlemde','kapatıldı') COLLATE utf8mb4_turkish_ci DEFAULT 'açık',
-  `admin_reply` text COLLATE utf8mb4_turkish_ci,
+  `name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `email` varchar(180) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `message` text CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `status` enum('açık','işlemde','kapatıldı') CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT 'açık',
+  `admin_reply` text CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci,
   `replied_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `support_tickets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -450,7 +450,7 @@ CREATE TABLE `support_tickets` (
 
 LOCK TABLES `support_tickets` WRITE;
 /*!40000 ALTER TABLE `support_tickets` DISABLE KEYS */;
-INSERT INTO `support_tickets` VALUES (1,2,'Ali Yılmaz','ali@mail.com','Siparisim 3 gündür kargoda görünüyor, ne zaman gelir?','işlemde',NULL,NULL,'2026-05-09 19:27:38'),(2,3,'Ayşe Kara','ayse@mail.com','Atolye rezervasyonumu iptal etmek istiyorum, ücret iadesi nasil yapılır?','açık',NULL,NULL,'2026-05-09 19:27:38');
+INSERT INTO `support_tickets` VALUES (1,2,'Ali Yılmaz','ali@mail.com','Siparisim 3 gündür kargoda görünüyor, ne zaman gelir?','işlemde',NULL,NULL,'2026-05-09 19:27:38'),(2,3,'Ayşe Kara','ayse@mail.com','Atolye rezervasyonumu iptal etmek istiyorum, ücret iadesi nasil yapılır?','açık',NULL,NULL,'2026-05-09 19:27:38'),(3,8,'eren kuşdil','kusdileren@gmail.com','bilgi alabilir miyim','kapatıldı','tabiiki','2026-05-10 21:50:37','2026-05-10 21:49:25');
 /*!40000 ALTER TABLE `support_tickets` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -463,14 +463,14 @@ DROP TABLE IF EXISTS `users`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `full_name` varchar(120) COLLATE utf8mb4_turkish_ci NOT NULL,
-  `email` varchar(180) COLLATE utf8mb4_turkish_ci NOT NULL,
-  `password` varchar(255) COLLATE utf8mb4_turkish_ci NOT NULL,
-  `role` enum('kullanici','admin') COLLATE utf8mb4_turkish_ci DEFAULT 'kullanici',
+  `full_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `email` varchar(180) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci NOT NULL,
+  `role` enum('kullanici','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_turkish_ci DEFAULT 'kullanici',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -479,7 +479,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin','admin@ktu.edu.tr','$2b$12$UpOhmOnrbWInDGbw6yjs.uLHDIF/HhDyr/mkPDpLdfM2QQXKorluy','admin','2026-05-09 19:27:38'),(2,'Ali Yılmaz','ali@mail.com','$2b$12$k4RUUNn6sB82PtzXafNUvuN.iRop2ssNfbfewprhJpsWpM5DLrZnu','kullanici','2026-05-09 19:27:38'),(3,'Ayşe Kara','ayse@mail.com','$2b$12$R/OnVkl6vaA6VeYXI.u/n.LyFliRI3pJWt1DNKK4ylxCQlcTYUm.W','kullanici','2026-05-09 19:27:38'),(4,'Berat Kaymaz','berat@ktu.edu.tr','$2b$12$pcYiEcOnTh5N411D4UKH9.EZMVTZqbMUdriu/3FEAYFZur5vieoKa','kullanici','2026-05-09 19:41:56'),(5,'Berat Kayar','kayar@ktu.edu.tr','$2b$12$jOM6Iy/wFzay1vLmRWCz5uwoFMmziHC24oR2Sqp8cgA/TAzah8Ky6','admin','2026-05-09 19:50:35'),(7,'Arda Gülmez','arda@mail.com','$2b$12$KmXRHXJHiE0RSS8zw79zueartYoztEr1pGtvRvx8YPWD4hJjjwuRe','kullanici','2026-05-10 18:07:25');
+INSERT INTO `users` VALUES (1,'Admin','admin@ktu.edu.tr','$2b$12$UpOhmOnrbWInDGbw6yjs.uLHDIF/HhDyr/mkPDpLdfM2QQXKorluy','admin','2026-05-09 19:27:38'),(2,'Ali Yılmaz','ali@mail.com','$2b$12$k4RUUNn6sB82PtzXafNUvuN.iRop2ssNfbfewprhJpsWpM5DLrZnu','kullanici','2026-05-09 19:27:38'),(3,'Ayşe Kara','ayse@mail.com','$2b$12$R/OnVkl6vaA6VeYXI.u/n.LyFliRI3pJWt1DNKK4ylxCQlcTYUm.W','kullanici','2026-05-09 19:27:38'),(4,'Berat Kaymaz','berat@ktu.edu.tr','$2b$12$pcYiEcOnTh5N411D4UKH9.EZMVTZqbMUdriu/3FEAYFZur5vieoKa','kullanici','2026-05-09 19:41:56'),(5,'Berat Kayar','kayar@ktu.edu.tr','$2b$12$jOM6Iy/wFzay1vLmRWCz5uwoFMmziHC24oR2Sqp8cgA/TAzah8Ky6','admin','2026-05-09 19:50:35'),(7,'Arda Gülmez','arda@mail.com','$2b$12$KmXRHXJHiE0RSS8zw79zueartYoztEr1pGtvRvx8YPWD4hJjjwuRe','kullanici','2026-05-10 18:07:25'),(8,'eren kuşdil','kusdileren@gmail.com','$2b$12$9paarJEZ2Vb1K6Drg3A1LuN1Yy4HahmOf4D8z7T94gUEsnPotk/q6','kullanici','2026-05-10 21:49:07');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -492,4 +492,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-10 19:07:12
+-- Dump completed on 2026-05-10 22:12:38
