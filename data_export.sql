@@ -408,7 +408,7 @@ CREATE TABLE `reviews` (
   CONSTRAINT `reviews_ibfk_2` FOREIGN KEY (`artwork_id`) REFERENCES `artworks` (`id`),
   CONSTRAINT `reviews_ibfk_3` FOREIGN KEY (`event_id`) REFERENCES `events` (`id`),
   CONSTRAINT `reviews_chk_1` CHECK ((`rating` between 1 and 5))
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -417,7 +417,7 @@ CREATE TABLE `reviews` (
 
 LOCK TABLES `reviews` WRITE;
 /*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-INSERT INTO `reviews` VALUES (1,2,1,NULL,5,'Mona Lisa reprodüksiyonu mükemmeldi, firca darbeleri inanilmaz detaylı.',1,'2026-05-09 19:27:38'),(2,3,1,NULL,4,'Cok etkileyici bir eser. Kargo biraz geç geldi ama kalite harika.',1,'2026-05-09 19:27:38'),(3,2,2,NULL,5,'Yıldızlı Gece her zaman favorim. Baskı kalitesi cok yüksek.',1,'2026-05-09 19:27:38'),(4,3,4,NULL,5,'Kaplumbaga Terbiyecisi gercekten esşiz. Osmanli sanatının zirvesi.',1,'2026-05-09 19:27:38'),(5,2,NULL,1,4,'Atolye cok verimli getti. Egitmen cok yetkiliydi.',1,'2026-05-09 19:27:38'),(6,3,NULL,6,5,'Türk Resim Sanatı Sergisi harikaydı. Kesinlikle tavsiye ederim.',1,'2026-05-09 19:27:38');
+INSERT INTO `reviews` VALUES (1,2,1,NULL,5,'Mona Lisa reprodüksiyonu mükemmeldi, firca darbeleri inanilmaz detaylı.',1,'2026-05-09 19:27:38'),(2,3,1,NULL,4,'Cok etkileyici bir eser. Kargo biraz geç geldi ama kalite harika.',1,'2026-05-09 19:27:38'),(3,2,2,NULL,5,'Yıldızlı Gece her zaman favorim. Baskı kalitesi cok yüksek.',1,'2026-05-09 19:27:38'),(4,3,4,NULL,5,'Kaplumbaga Terbiyecisi gercekten esşiz. Osmanli sanatının zirvesi.',1,'2026-05-09 19:27:38'),(5,2,NULL,1,4,'Atolye cok verimli getti. Egitmen cok yetkiliydi.',1,'2026-05-09 19:27:38'),(6,3,NULL,6,5,'Türk Resim Sanatı Sergisi harikaydı. Kesinlikle tavsiye ederim.',1,'2026-05-09 19:27:38'),(7,7,3,NULL,5,'Çığlık atıyor, çok iyi.',0,'2026-05-10 18:45:59'),(8,7,1,NULL,4,'Garip bir kadın',0,'2026-05-10 18:46:19'),(9,7,9,NULL,5,'YERLİ VE MİLLİ',0,'2026-05-10 18:50:11'),(10,7,NULL,1,5,'Buna kesin gideceğim.',0,'2026-05-10 18:55:43');
 /*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -492,4 +492,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-10 18:30:35
+-- Dump completed on 2026-05-10 19:07:12
