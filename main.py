@@ -1209,3 +1209,144 @@ def admin_rezervasyon_durum(reservation_id: int, upd: dict):
     conn.commit()
     conn.close()
     return {"mesaj": "Rezervasyon durumu güncellendi"}
+
+# ─── ADMIN: ÖZET RAPOR ──────────────────────────────────────
+# Bu kodu main.py'nin EN SONUNA ekle (son satırdan önce)
+
+@app.get("/admin/rapor")
+def admin_rapor():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # Genel özet
+    cursor.execute("SELECT COUNT(*) as toplam FROM users WHERE role='kullanici'")
+    toplam_kullanici = cursor.fetchone()['toplam']
+
+    cursor.execute("SELECT COUNT(*) as toplam FROM artworks")
+    toplam_eser = cursor.fetchone()['toplam']
+
+    cursor.execute("SELECT COUNT(*) as toplam FROM events")
+    toplam_etkinlik = cursor.fetchone()['toplam']
+
+    cursor.execute("SELECT COALESCE(SUM(amount), 0) as toplam FROM orders WHERE status='onaylandı'")
+    toplam_ciro = float(cursor.fetchone()['toplam'])
+
+    cursor.execute("SELECT COUNT(*) as toplam FROM orders WHERE status='onaylandı'")
+    toplam_siparis = cursor.fetchone()['toplam']
+
+    cursor.execute("SELECT COUNT(*) as toplam FROM reservations WHERE status='onaylandı'")
+    toplam_rezervasyon = cursor.fetchone()['toplam']
+
+    cursor.execute("SELECT COUNT(*) as toplam FROM support_tickets WHERE status='açık'")
+    acik_talepler = cursor.fetchone()['toplam']
+
+    cursor.execute("SELECT COUNT(*) as toplam FROM reviews")
+    toplam_yorum = cursor.fetchone()['toplam']
+
+    # En çok satan 5 eser
+    cursor.execute("""
+        SELECT a.title, ar.name as artist_name, COUNT(o.id) as satis_adedi,
+               COALESCE(SUM(o.amount), 0) as toplam_gelir
+        FROM artworks a
+        LEFT JOIN artists ar ON a.artist_id = ar.id
+        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status='onaylandı'
+        GROUP BY a.id
+        ORDER BY satis_adedi DESC
+        LIMIT 5
+    """)
+    en_cok_satan = cursor.fetchall()
+
+    # En popüler 5 etkinlik
+    cursor.execute("""
+        SELECT e.title, e.event_type, e.event_date,
+               COUNT(r.id) as rezervasyon_sayisi,
+               COALESCE(SUM(r.participant_count), 0) as toplam_katilimci
+        FROM events e
+        LEFT JOIN reservations r ON r.event_id = e.id AND r.status != 'iptal'
+        GROUP BY e.id
+        ORDER BY rezervasyon_sayisi DESC
+        LIMIT 5
+    """)
+    en_populer_etkinlik = cursor.fetchall()
+
+    # Aylık ciro (son 6 ay)
+    cursor.execute("""
+        SELECT DATE_FORMAT(created_at, '%Y-%m') as ay,
+               COALESCE(SUM(amount), 0) as ciro,
+               COUNT(*) as siparis_sayisi
+        FROM orders
+        WHERE status='onaylandı'
+          AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+        GROUP BY ay
+        ORDER BY ay ASC
+    """)
+    aylik_ciro = cursor.fetchall()
+
+    # Kategori bazlı satış
+    cursor.execute("""
+        SELECT c.name as kategori,
+               COUNT(o.id) as satis_adedi,
+               COALESCE(SUM(o.amount), 0) as toplam_gelir
+        FROM categories c
+        LEFT JOIN artworks a ON a.category_id = c.id
+        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status='onaylandı'
+        GROUP BY c.id
+        ORDER BY toplam_gelir DESC
+    """)
+    kategori_satis = cursor.fetchall()
+
+    # Son 5 sipariş
+    cursor.execute("""
+        SELECT o.id, o.amount, o.status, o.created_at,
+               u.full_name as musteri,
+               COALESCE(a.title, e.title) as urun
+        FROM orders o
+        LEFT JOIN users u ON o.user_id = u.id
+        LEFT JOIN artworks a ON o.artwork_id = a.id
+        LEFT JOIN events e ON o.event_id = e.id
+        ORDER BY o.created_at DESC
+        LIMIT 5
+    """)
+    son_siparisler = cursor.fetchall()
+
+    # En çok görüntülenen eserler
+    cursor.execute("""
+        SELECT a.title, ar.name as artist_name,
+               COUNT(v.id) as goruntuleme
+        FROM artworks a
+        LEFT JOIN artists ar ON a.artist_id = ar.id
+        LEFT JOIN artwork_views v ON v.artwork_id = a.id
+        GROUP BY a.id
+        ORDER BY goruntuleme DESC
+        LIMIT 5
+    """)
+    en_cok_gorutulen = cursor.fetchall()
+
+    conn.close()
+
+    return {
+        "ozet": {
+            "toplam_kullanici": toplam_kullanici,
+            "toplam_eser": toplam_eser,
+            "toplam_etkinlik": toplam_etkinlik,
+            "toplam_ciro": toplam_ciro,
+            "toplam_siparis": toplam_siparis,
+            "toplam_rezervasyon": toplam_rezervasyon,
+            "acik_talepler": acik_talepler,
+            "toplam_yorum": toplam_yorum,
+        },
+        "en_cok_satan": [
+            {**r, "toplam_gelir": float(r["toplam_gelir"])} for r in en_cok_satan
+        ],
+        "en_populer_etkinlik": en_populer_etkinlik,
+        "aylik_ciro": [
+            {**r, "ciro": float(r["ciro"])} for r in aylik_ciro
+        ],
+        "kategori_satis": [
+            {**r, "toplam_gelir": float(r["toplam_gelir"])} for r in kategori_satis
+        ],
+        "son_siparisler": [
+            {**r, "amount": float(r["amount"])} for r in son_siparisler
+        ],
+        "en_cok_gorutulen": en_cok_gorutulen,
+    }
