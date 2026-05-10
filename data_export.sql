@@ -133,6 +133,35 @@ INSERT INTO `categories` VALUES (1,'Rönesans'),(2,'Post-Empresyonizm'),(3,'Eksp
 UNLOCK TABLES;
 
 --
+-- Table structure for table `comparison_history`
+--
+
+DROP TABLE IF EXISTS `comparison_history`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `comparison_history` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `comparison_type` enum('artworks','events') COLLATE utf8mb4_turkish_ci NOT NULL,
+  `item_ids` json NOT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `comparison_history_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `comparison_history`
+--
+
+LOCK TABLES `comparison_history` WRITE;
+/*!40000 ALTER TABLE `comparison_history` DISABLE KEYS */;
+INSERT INTO `comparison_history` VALUES (1,5,'artworks','[3, 1]','2026-05-10 17:55:51'),(3,7,'events','[7, 11]','2026-05-10 18:19:50'),(4,7,'artworks','[7, 4]','2026-05-10 18:20:35'),(5,7,'events','[8, 5]','2026-05-10 18:20:39');
+/*!40000 ALTER TABLE `comparison_history` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `coupons`
 --
 
@@ -441,7 +470,7 @@ CREATE TABLE `users` (
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_turkish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -450,13 +479,9 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Admin','admin@ktu.edu.tr','$2b$12$UpOhmOnrbWInDGbw6yjs.uLHDIF/HhDyr/mkPDpLdfM2QQXKorluy','admin','2026-05-09 19:27:38'),(2,'Ali Yılmaz','ali@mail.com','$2b$12$k4RUUNn6sB82PtzXafNUvuN.iRop2ssNfbfewprhJpsWpM5DLrZnu','kullanici','2026-05-09 19:27:38'),(3,'Ayşe Kara','ayse@mail.com','$2b$12$R/OnVkl6vaA6VeYXI.u/n.LyFliRI3pJWt1DNKK4ylxCQlcTYUm.W','kullanici','2026-05-09 19:27:38'),(4,'Berat Kaymaz','berat@ktu.edu.tr','$2b$12$pcYiEcOnTh5N411D4UKH9.EZMVTZqbMUdriu/3FEAYFZur5vieoKa','kullanici','2026-05-09 19:41:56'),(5,'Berat Kayar','kayar@ktu.edu.tr','$2b$12$jOM6Iy/wFzay1vLmRWCz5uwoFMmziHC24oR2Sqp8cgA/TAzah8Ky6','admin','2026-05-09 19:50:35');
+INSERT INTO `users` VALUES (1,'Admin','admin@ktu.edu.tr','$2b$12$UpOhmOnrbWInDGbw6yjs.uLHDIF/HhDyr/mkPDpLdfM2QQXKorluy','admin','2026-05-09 19:27:38'),(2,'Ali Yılmaz','ali@mail.com','$2b$12$k4RUUNn6sB82PtzXafNUvuN.iRop2ssNfbfewprhJpsWpM5DLrZnu','kullanici','2026-05-09 19:27:38'),(3,'Ayşe Kara','ayse@mail.com','$2b$12$R/OnVkl6vaA6VeYXI.u/n.LyFliRI3pJWt1DNKK4ylxCQlcTYUm.W','kullanici','2026-05-09 19:27:38'),(4,'Berat Kaymaz','berat@ktu.edu.tr','$2b$12$pcYiEcOnTh5N411D4UKH9.EZMVTZqbMUdriu/3FEAYFZur5vieoKa','kullanici','2026-05-09 19:41:56'),(5,'Berat Kayar','kayar@ktu.edu.tr','$2b$12$jOM6Iy/wFzay1vLmRWCz5uwoFMmziHC24oR2Sqp8cgA/TAzah8Ky6','admin','2026-05-09 19:50:35'),(7,'Arda Gülmez','arda@mail.com','$2b$12$KmXRHXJHiE0RSS8zw79zueartYoztEr1pGtvRvx8YPWD4hJjjwuRe','kullanici','2026-05-10 18:07:25');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'sanat_galerisi'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -467,4 +492,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-09 20:47:12
+-- Dump completed on 2026-05-10 18:30:35

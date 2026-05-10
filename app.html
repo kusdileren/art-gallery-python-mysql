@@ -390,7 +390,7 @@
     <li><a href="#" id="nav-gallery" onclick="showPage('gallery');return false">Sergi Salonu</a></li>
     <li><a href="#" id="nav-events" onclick="showPage('events');return false">Etkinlikler</a></li>
     <li><a href="#" id="nav-compare" onclick="showPage('compare');return false">Karşılaştır</a></li>
-    <li><a href="#" id="nav-stats" onclick="showPage('stats');return false">İstatistikler</a></li>
+    <li id="nav-stats-li" style="display:none"><a href="#" id="nav-stats" onclick="showPage('stats');return false">İstatistikler</a></li>
     <li><a href="#" id="nav-support" onclick="showPage('support');return false">Destek</a></li>
     <li><a href="#" id="nav-auth" onclick="goAccount();return false">Hesabım</a></li>
   </ul>
@@ -529,6 +529,11 @@
     <div id="compare-result">
       <div class="empty-state">Sergi Salonu'nda eserlerin üzerindeki kutucukları işaretleyin, ardından buraya gelin.</div>
     </div>
+    <div id="compare-history-section" style="display:none;margin-top:40px">
+      <hr class="divider">
+      <div class="section-title" style="font-size:18px;margin-bottom:16px">Kaydedilen <span>Karşılaştırmalar</span></div>
+      <div id="compare-history-list"></div>
+    </div>
   </div>
 </div>
 
@@ -618,6 +623,7 @@
         <div class="account-menu-item" onclick="showAccountPanel('reservations')">📅 Rezervasyonlarım</div>
         <div class="account-menu-item" onclick="showAccountPanel('favorites')">❤️ Favorilerim</div>
         <div class="account-menu-item" onclick="showAccountPanel('password')">🔒 Şifre Değiştir</div>
+        <div class="account-menu-item" onclick="showAccountPanel('comparisons')">⚖️ Karşılaştırmalarım</div>
       </div>
       <div>
         <!-- Profil -->
@@ -648,6 +654,11 @@
           <div class="form-group"><label>Yeni Şifre (Tekrar)</label><input type="password" id="new-pass2"></div>
           <button class="btn-dark" onclick="sifreDegistir()">Şifreyi Değiştir</button>
           <div id="password-msg"></div>
+        </div>
+        <!-- Karşılaştırmalarım -->
+        <div class="account-panel" id="panel-comparisons">
+          <div style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:20px">Karşılaştırma <span style="color:var(--accent)">Geçmişim</span></div>
+          <div id="comparisons-list"><div class="loading"><div class="spinner"></div>Yükleniyor...</div></div>
         </div>
       </div>
     </div>
@@ -1126,6 +1137,7 @@
       <p id="event-modal-desc" style="font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--text-mid);line-height:1.7;margin-bottom:20px"></p>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="event-price" id="event-modal-price" style="font-size:22px;flex:1"></div>
+        <button class="btn-outline" id="event-modal-compare-btn" onclick="modalEventCompareToggle()">⚖ Karşılaştır</button>
         <button class="btn-outline" onclick="addEventToCart(currentEvent)">🛒 Sepete Ekle</button>
         <button class="btn-dark" onclick="openResModalFromEvent()">📅 Rezervasyon Yap</button>
       </div>
@@ -1180,7 +1192,7 @@
         <li><a onclick="showPage('home')">Ana Sayfa</a></li>
         <li><a onclick="showPage('gallery')">Sergi Salonu</a></li>
         <li><a onclick="showPage('events')">Etkinlikler</a></li>
-        <li><a onclick="showPage('stats')">İstatistikler</a></li>
+        <li id="footer-stats-li" style="display:none"><a onclick="showPage('stats')">İstatistikler</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -1217,7 +1229,7 @@
 <script>
 const API = 'http://localhost:8000';
 let allEserler = [], allEvents = [], currentEser = null, currentEvent = null;
-let compareList = [], compareMode = 'artworks';
+let compareList = [], compareEventList = [], compareMode = 'artworks';
 let currentUser = null;
 
 // ── OTURUM KALICILIĞI ─────────────────────────────────────────
@@ -1260,9 +1272,12 @@ function showPage(page) {
   window.scrollTo(0,0);
   if (page === 'gallery' && !allEserler.length) loadEserler();
   if (page === 'events' && !allEvents.length) loadEvents();
-  if (page === 'stats') loadStats();
+  if (page === 'stats') {
+    if (!currentUser || currentUser.role !== 'admin') { showPage('auth'); setAuthTab('login'); showNotif('Bu sayfa yalnızca adminlere özeldir.'); return; }
+    loadStats();
+  }
   if (page === 'account' && currentUser) loadAccountData();
-  if (page === 'compare') renderCompareTable();
+  if (page === 'compare') { renderCompareTable(); loadComparePageHistory(); }
   if (page === 'admin' && currentUser?.role === 'admin') loadAdminDashboard();
 }
 function goAccount() {
@@ -1883,7 +1898,15 @@ async function adminEtkinlikKaydet() {
 function setLoggedIn(on) {
   $('user-info').style.display = on ? 'flex':'none';
   $('auth-btns').style.display = on ? 'none':'flex';
-  if (on && currentUser) { $('user-name-display').textContent = currentUser.full_name; }
+  if (on && currentUser) {
+    $('user-name-display').textContent = currentUser.full_name;
+    const isAdmin = currentUser.role === 'admin';
+    $('nav-stats-li').style.display = isAdmin ? 'block' : 'none';
+    $('footer-stats-li').style.display = isAdmin ? 'block' : 'none';
+  } else {
+    $('nav-stats-li').style.display = 'none';
+    $('footer-stats-li').style.display = 'none';
+  }
 }
 
 // ── ACCOUNT PANELS ────────────────────────────────────────────
@@ -1899,7 +1922,7 @@ function loadAccountData() {
   $('account-welcome').textContent = `Hoş geldiniz, ${currentUser.full_name}`;
   $('profile-name').value = currentUser.full_name;
   $('profile-email').value = currentUser.email;
-  loadOrders(); loadReservations(); loadFavorites();
+  loadOrders(); loadReservations(); loadFavorites(); loadComparisonHistory();
   if (currentUser) { $('support-name').value = currentUser.full_name; $('support-email').value = currentUser.email; }
 }
 async function profilGuncelle() {
@@ -1957,6 +1980,60 @@ async function loadFavorites() {
   const r = await fetch(`${API}/favoriler/${currentUser.id}`);
   const list = await r.json();
   $('favorites-grid').innerHTML = list.length ? list.map((e,i) => eserCard(e,i,true)).join('') : '<div class="empty-state">Favori listeniz boş.</div>';
+}
+
+async function loadComparisonHistory() {
+  if (!currentUser) return;
+  const container = $('comparisons-list');
+  try {
+    const r = await fetch(`${API}/karsilastirma-gecmisi/${currentUser.id}`);
+    const list = await r.json();
+    if (!list.length) {
+      container.innerHTML = '<div class="empty-state">Henüz kaydedilmiş karşılaştırmanız yok.</div>';
+      return;
+    }
+    container.innerHTML = list.map(row => {
+      const typeLabel = row.comparison_type === 'artworks' ? '🖼️ Eser' : '🎭 Etkinlik';
+      const date = fmtDate(row.created_at);
+      const ids = row.item_ids;
+      const replayFn = row.comparison_type === 'artworks'
+        ? `replayArtworkComparison(${JSON.stringify(ids)})`
+        : `replayEventComparison(${JSON.stringify(ids)})`;
+      return `
+        <div style="background:var(--white);border:1px solid var(--border);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:15px;margin-bottom:4px">${typeLabel} Karşılaştırması</div>
+            <div style="font-size:12px;color:var(--text-muted)">${date} · ${ids.length} öğe · ID: ${ids.join(', ')}</div>
+          </div>
+          <button class="btn-outline" style="font-size:12px;padding:6px 14px;white-space:nowrap" onclick="${replayFn}">⚖️ Tekrar Karşılaştır</button>
+        </div>`;
+    }).join('');
+  } catch {
+    container.innerHTML = '<div class="empty-state">Karşılaştırma geçmişi yüklenemedi.</div>';
+  }
+}
+
+async function replayArtworkComparison(ids) {
+  // Eserleri compareList'e yükle ve karşılaştırma sayfasına git
+  const r = await fetch(`${API}/karsilastir-eserler`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ids})});
+  if (!r.ok) { showNotif('Eserler yüklenemedi.','error'); return; }
+  const items = await r.json();
+  compareList = items.map(e => ({id: e.id, title: e.title}));
+  compareMode = 'artworks';
+  updateCompareBar();
+  showPage('compare');
+  renderCompareTable();
+}
+
+async function replayEventComparison(ids) {
+  const r = await fetch(`${API}/karsilastir-etkinlikler`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ids})});
+  if (!r.ok) { showNotif('Etkinlikler yüklenemedi.','error'); return; }
+  const items = await r.json();
+  compareEventList = items.map(e => ({id: e.id, title: e.title}));
+  compareMode = 'events';
+  updateCompareBar();
+  showPage('compare');
+  renderCompareTable();
 }
 
 // ── ESERLERİ YÜKLE ────────────────────────────────────────────
@@ -2292,19 +2369,49 @@ function toggleCompare(id) {
   renderEserler(allEserler, 'gallery-grid');
   renderEserler(allEserler.slice(0,8), 'featured-grid');
 }
+function toggleEventCompare(id) {
+  const ev = allEvents.find(e => e.id===id);
+  if (!ev) return;
+  const idx = compareEventList.findIndex(c => c.id===id);
+  if (idx>=0) compareEventList.splice(idx,1);
+  else if (compareEventList.length < 3) compareEventList.push(ev);
+  else { showNotif('En fazla 3 etkinlik karşılaştırabilirsiniz.','error'); return; }
+  updateCompareBar();
+  renderEvents(allEvents, 'events-grid');
+}
 function modalCompareToggle() {
   if (!currentEser) return;
   toggleCompare(currentEser.id); closeModal();
 }
+function modalEventCompareToggle() {
+  if (!currentEvent) return;
+  toggleEventCompare(currentEvent.id);
+  const inCompare = compareEventList.find(c => c.id===currentEvent.id);
+  const btn = $('event-modal-compare-btn');
+  if (btn) {
+    btn.textContent = inCompare ? '✓ Listeden Çıkar' : '⚖ Karşılaştır';
+    btn.style.background = inCompare ? 'var(--accent)' : '';
+    btn.style.color = inCompare ? 'white' : '';
+  }
+}
 function updateCompareBar() {
   const bar = $('compare-bar');
-  if (!compareList.length) { bar.classList.remove('show'); return; }
+  const total = compareList.length + compareEventList.length;
+  if (!total) { bar.classList.remove('show'); return; }
   bar.classList.add('show');
-  $('compare-items').innerHTML = compareList.map(e => `
-    <div class="compare-item-tag">${e.title}<button onclick="toggleCompare(${e.id})">✕</button></div>`).join('');
+  $('compare-items').innerHTML = [
+    ...compareList.map(e => `<div class="compare-item-tag">${e.title}<button onclick="toggleCompare(${e.id})">✕</button></div>`),
+    ...compareEventList.map(e => `<div class="compare-item-tag">${e.title}<button onclick="toggleEventCompare(${e.id})">✕</button></div>`)
+  ].join('');
 }
-function clearCompare() { compareList=[]; updateCompareBar(); renderEserler(allEserler,'gallery-grid'); renderEserler(allEserler.slice(0,8),'featured-grid'); }
-function goCompare() { showPage('compare'); renderCompareTable(); }
+function clearCompare() {
+  compareList=[]; compareEventList=[];
+  updateCompareBar();
+  renderEserler(allEserler,'gallery-grid');
+  renderEserler(allEserler.slice(0,8),'featured-grid');
+  if (allEvents.length) renderEvents(allEvents,'events-grid');
+}
+function goCompare() { showPage('compare'); renderCompareTable(); loadComparePageHistory(); }
 function setCompareMode(mode, btn) {
   compareMode = mode;
   document.querySelectorAll('#page-compare .filter-btn').forEach(b=>b.classList.remove('active'));
@@ -2313,17 +2420,20 @@ function setCompareMode(mode, btn) {
 }
 async function renderCompareTable() {
   const container = $('compare-result');
-  if (!compareList.length) { container.innerHTML='<div class="empty-state">Sergi Salonu\'nda eserlerin üzerindeki kutucukları işaretleyin.</div>'; return; }
+  const activeList = compareMode === 'artworks' ? compareList : compareEventList;
+  if (!activeList.length) {
+    container.innerHTML = compareMode === 'artworks'
+      ? '<div class="empty-state">Sergi Salonu\'nda eserlerin üzerindeki kutucukları işaretleyin.</div>'
+      : '<div class="empty-state">Etkinlikler sayfasında etkinliğin inceleme ekranından ⚖ butonuyla ekleyin.</div>';
+    return;
+  }
   try {
-    const r = await fetch(`${API}/karsilastir-eserler`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:compareList.map(c=>c.id)})});
-    const items = await r.json();
-    container.innerHTML = `
-      <div style="overflow-x:auto">
-        <table class="compare-table">
-          <tr>
-            <th></th>
-            ${items.map(e=>`<th>${e.title}</th>`).join('')}
-          </tr>
+    if (compareMode === 'artworks') {
+      const r = await fetch(`${API}/karsilastir-eserler`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:activeList.map(c=>c.id)})});
+      const items = await r.json();
+      container.innerHTML = `
+        <div style="overflow-x:auto"><table class="compare-table">
+          <tr><th></th>${items.map(e=>`<th>${e.title}</th>`).join('')}</tr>
           <tr><td>Görsel</td>${items.map(e=>`<td><img src="images/${e.image_url}" onerror="this.src='https://via.placeholder.com/80x80/f0ebe4/9a9090?text=🖼️'"></td>`).join('')}</tr>
           <tr><td>Sanatçı</td>${items.map(e=>`<td>${e.artist_name||'—'}</td>`).join('')}</tr>
           <tr><td>Kategori</td>${items.map(e=>`<td>${e.category_name||'—'}</td>`).join('')}</tr>
@@ -2334,9 +2444,65 @@ async function renderCompareTable() {
           <tr><td>Puan</td>${items.map(e=>`<td style="color:var(--accent)">${stars(e.avg_rating)} (${Number(e.avg_rating).toFixed(1)})</td>`).join('')}</tr>
           <tr><td>Yorum</td>${items.map(e=>`<td>${e.review_count}</td>`).join('')}</tr>
           <tr><td>İndirim</td>${items.map(e=>`<td>${e.discount_percent>0?`%${e.discount_percent}`:'—'}</td>`).join('')}</tr>
-        </table>
-      </div>`;
+        </table></div>
+        <div style="margin-top:20px;text-align:right">
+          <button class="btn-outline" onclick="saveComparison('artworks',${JSON.stringify(activeList.map(e=>e.id))})">💾 Karşılaştırmayı Kaydet</button>
+        </div>`;
+    } else {
+      const r = await fetch(`${API}/karsilastir-etkinlikler`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids:activeList.map(c=>c.id)})});
+      const items = await r.json();
+      container.innerHTML = `
+        <div style="overflow-x:auto"><table class="compare-table">
+          <tr><th></th>${items.map(e=>`<th>${e.title}</th>`).join('')}</tr>
+          <tr><td>Görsel</td>${items.map(e=>`<td><img src="images/${e.image_url||''}" onerror="this.src='https://via.placeholder.com/80x80/f0ebe4/9a9090?text=🎭'"></td>`).join('')}</tr>
+          <tr><td>Tarih</td>${items.map(e=>`<td>${e.event_date?e.event_date.substring(0,10):'—'}</td>`).join('')}</tr>
+          <tr><td>Konum</td>${items.map(e=>`<td>${e.location||'—'}</td>`).join('')}</tr>
+          <tr><td>Fiyat</td>${items.map(e=>`<td style="color:var(--accent-dark);font-weight:700">${fmtPrice(e.price)}</td>`).join('')}</tr>
+          <tr><td>Kapasite</td>${items.map(e=>`<td>${e.capacity||'—'}</td>`).join('')}</tr>
+          <tr><td>Rezervasyon</td>${items.map(e=>`<td>${e.reserved_count||0}</td>`).join('')}</tr>
+          <tr><td>Puan</td>${items.map(e=>`<td style="color:var(--accent)">${stars(e.avg_rating)} (${Number(e.avg_rating).toFixed(1)})</td>`).join('')}</tr>
+        </table></div>
+        <div style="margin-top:20px;text-align:right">
+          <button class="btn-outline" onclick="saveComparison('events',${JSON.stringify(activeList.map(e=>e.id))})">💾 Karşılaştırmayı Kaydet</button>
+        </div>`;
+    }
   } catch { container.innerHTML = '<div class="empty-state">Karşılaştırma verisi yüklenemedi.</div>'; }
+}
+async function saveComparison(type, ids) {
+  if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Kaydetmek için giriş yapın.','error'); return; }
+  try {
+    const r = await fetch(`${API}/karsilastirma-kaydet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,type,ids})});
+    if (r.ok) { showNotif('Karşılaştırma kaydedildi! ✓'); loadComparePageHistory(); }
+    else showNotif('Kaydetme başarısız.','error');
+  } catch { showNotif('Sunucuya bağlanılamadı.','error'); }
+}
+
+async function loadComparePageHistory() {
+  const section = $('compare-history-section');
+  const container = $('compare-history-list');
+  if (!currentUser || !section || !container) return;
+  try {
+    const r = await fetch(`${API}/karsilastirma-gecmisi/${currentUser.id}`);
+    const list = await r.json();
+    if (!list.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    container.innerHTML = list.map(row => {
+      const typeLabel = row.comparison_type === 'artworks' ? '🖼️ Eser' : '🎭 Etkinlik';
+      const date = fmtDate(row.created_at);
+      const ids = row.item_ids;
+      const replayFn = row.comparison_type === 'artworks'
+        ? `replayArtworkComparison(${JSON.stringify(ids)})`
+        : `replayEventComparison(${JSON.stringify(ids)})`;
+      return `
+        <div style="background:var(--cream-light);border:1px solid var(--border);padding:14px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-radius:4px">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:14px;margin-bottom:3px">${typeLabel} Karşılaştırması</div>
+            <div style="font-size:11px;color:var(--text-muted)">${date} · ${ids.length} öğe</div>
+          </div>
+          <button class="btn-outline" style="font-size:11px;padding:5px 12px;white-space:nowrap" onclick="${replayFn}">Tekrar Göster</button>
+        </div>`;
+    }).join('');
+  } catch { /* sessizce geç */ }
 }
 
 function formatCardNumber(input) {
@@ -2580,6 +2746,14 @@ function openEventModal(id) {
     <div class="event-detail-item"><label>Süre</label><span>${ev.duration_minutes||'—'} dakika</span></div>
     <div class="event-detail-item"><label>Tür</label><span>${types[ev.event_type]||ev.event_type}</span></div>
   `;
+
+  const inCompare = compareEventList.find(c => c.id===ev.id);
+  const cmpBtn = $('event-modal-compare-btn');
+  if (cmpBtn) {
+    cmpBtn.textContent = inCompare ? '✓ Listeden Çıkar' : '⚖ Karşılaştır';
+    cmpBtn.style.background = inCompare ? 'var(--accent)' : '';
+    cmpBtn.style.color = inCompare ? 'white' : '';
+  }
 
   $('event-modal-bg').classList.add('open');
 }

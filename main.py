@@ -501,6 +501,38 @@ def karsilastir_etkinlikler(body: dict):
     conn.close()
     return res
 
+@app.post("/karsilastirma-kaydet")
+def karsilastirma_kaydet(body: dict):
+    import json
+    user_id = body.get("user_id")
+    type_ = body.get("type")
+    ids = body.get("ids", [])
+    if not user_id or not ids or len(ids) < 2:
+        raise HTTPException(status_code=400, detail="Geçersiz veri")
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO comparison_history (user_id, comparison_type, item_ids)
+        VALUES (%s, %s, %s)
+    """, (user_id, type_, json.dumps(ids)))
+    conn.commit()
+    conn.close()
+    return {"mesaj": "Karşılaştırma kaydedildi"}
+
+@app.get("/karsilastirma-gecmisi/{user_id}")
+def karsilastirma_gecmisi(user_id: int):
+    import json
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT * FROM comparison_history WHERE user_id=%s ORDER BY created_at DESC LIMIT 20
+    """, (user_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    for row in rows:
+        row['item_ids'] = json.loads(row['item_ids'])
+    return rows
+
 # ─── MADDE 12: YORUM EKLEME ─────────────────────────────────
 @app.post("/yorum-yap")
 def yorum_yap(rev: Review):
