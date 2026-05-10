@@ -678,6 +678,7 @@
       <!-- Sol menü -->
       <div class="account-menu">
         <div class="account-menu-item active" onclick="showAdminPanel('dashboard')">📊 Genel Bakış</div>
+        <div class="account-menu-item" onclick="showAdminPanel('rapor'); adminRaporYukle()">📈 Özet Rapor</div>
         <div class="account-menu-item" onclick="showAdminPanel('featured-mgmt')">⭐ Öne Çıkan Eserler</div>
         <div class="account-menu-item" onclick="showAdminPanel('artworks')">🖼️ Eser Yönetimi</div>
         <div class="account-menu-item" onclick="showAdminPanel('events-mgmt')">🎨 Etkinlik Yönetimi</div>
@@ -699,6 +700,12 @@
           <div id="admin-top-artworks"></div>
           <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin:20px 0 12px">Etkinlik Doluluk Oranları</div>
           <div id="admin-event-fill"></div>
+        </div>
+
+        <!-- Özet Rapor -->
+        <div class="account-panel" id="admin-panel-rapor">
+          <div style="font-weight:700;font-size:17px;margin-bottom:20px">📈 Özet Rapor</div>
+          <div id="rapor-icerik"><div class="loading"><div class="spinner"></div>Rapor yükleniyor...</div></div>
         </div>
 
         <!-- Eser Yönetimi -->
@@ -1229,10 +1236,10 @@
     <div class="footer-col">
       <h4>Koleksiyonlar</h4>
       <ul>
-        <li><a>Rönesans</a></li>
-        <li><a>Empresyonizm</a></li>
-        <li><a>Modern Sanat</a></li>
-        <li><a>Türk Resim Sanatı</a></li>
+       <li><a onclick="showPage('gallery'); setTimeout(()=>filterByCategory('Rönesans'),300)">Rönesans</a></li>
+       <li><a onclick="showPage('gallery'); setTimeout(()=>filterByCategory('Post-Empresyonizm'),300)">Empresyonizm</a></li>
+       <li><a onclick="showPage('gallery'); setTimeout(()=>filterByCategory('Modern Sanat'),300)">Modern Sanat</a></li>
+       <li><a onclick="showPage('gallery'); setTimeout(()=>filterByCategory('Türk Resim Sanatı'),300)">Türk Resim Sanatı</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -1249,12 +1256,12 @@
       <ul>
         <li><a onclick="showPage('support')">Destek Formu</a></li>
         <li><a onclick="toggleChat()">Canlı Destek</a></li>
-        <li><a>Instagram</a></li>
-        <li><a>Twitter</a></li>
+        <li><a href="https://www.instagram.com/tcktu1955/" target="_blank">Instagram</a></li>
+        <li><a href="https://x.com/tcktu1955" target="_blank">Twitter</a></li>
       </ul>
     </div>
   </div>
-  <div class="footer-bottom">© 2024 KTÜ Sanat Galerisi · Veritabanı Yönetim Sistemleri Projesi</div>
+  <div class="footer-bottom">© 2026 KTÜ Sanat Galerisi </div>
 </footer>
 
 <script>
@@ -2199,6 +2206,7 @@ function filterByCategory(cat, btn) {
   const filtered = cat ? allEserler.filter(e => e.category_name === cat) : allEserler;
   renderEserler(filtered, 'gallery-grid');
 }
+
 function sortEserler(val) {
   let sorted = [...allEserler];
   if (val==='price_asc') sorted.sort((a,b) => a.price-b.price);
@@ -2999,6 +3007,105 @@ async function loadMyTickets() {
     </div>`).join('') : '<div style="color:var(--text-muted);font-size:13px">Henüz talebiniz yok.</div>';
 }
 
+async function adminRaporYukle() {
+  const el = document.getElementById('rapor-icerik');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+  try {
+    const r = await fetch(API + '/admin/rapor');
+    const d = await r.json();
+    const o = d.ozet;
+
+    function para(n) { return '₺' + Number(n).toLocaleString('tr-TR', {maximumFractionDigits:0}); }
+
+    // KPI kartları
+    const kpiler = [
+      ['👥 Kullanıcı', o.toplam_kullanici],
+      ['🖼️ Eser', o.toplam_eser],
+      ['🎭 Etkinlik', o.toplam_etkinlik],
+      ['📦 Sipariş', o.toplam_siparis],
+      ['🎟️ Rezervasyon', o.toplam_rezervasyon],
+      ['💰 Toplam Ciro', para(o.toplam_ciro)],
+      ['🎧 Açık Destek', o.acik_talepler],
+      ['💬 Yorum', o.toplam_yorum],
+    ];
+
+    const kpiHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px">
+      ${kpiler.map(([k,v]) => `
+        <div class="stat-card">
+          <div class="stat-num" style="font-size:24px">${v}</div>
+          <div class="stat-label">${k}</div>
+        </div>`).join('')}
+    </div>`;
+
+    // En çok satan eserler tablosu
+    const satisHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🏆 En Çok Satan Eserler</div>
+      <table class="stat-table" style="margin-bottom:28px">
+        <thead><tr><th>#</th><th>Eser</th><th>Sanatçı</th><th>Satış</th><th>Gelir</th></tr></thead>
+        <tbody>${d.en_cok_satan.map((r,i) => `<tr>
+          <td>${i+1}</td><td>${r.title}</td><td>${r.artist_name||'-'}</td>
+          <td><span class="status-badge onaylandi">${r.satis_adedi} adet</span></td>
+          <td style="color:var(--accent-dark);font-weight:700">${para(r.toplam_gelir)}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    // En popüler etkinlikler
+    const etkinlikHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🎭 En Popüler Etkinlikler</div>
+      <table class="stat-table" style="margin-bottom:28px">
+        <thead><tr><th>#</th><th>Etkinlik</th><th>Tür</th><th>Rezervasyon</th><th>Katılımcı</th></tr></thead>
+        <tbody>${d.en_populer_etkinlik.map((r,i) => `<tr>
+          <td>${i+1}</td><td>${r.title}</td>
+          <td><span class="status-badge beklemede">${r.event_type}</span></td>
+          <td>${r.rezervasyon_sayisi}</td><td>${r.toplam_katilimci}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    // Kategori satış
+    const kategoriHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🗂️ Kategori Bazlı Satış</div>
+      <table class="stat-table" style="margin-bottom:28px">
+        <thead><tr><th>Kategori</th><th>Satış Adedi</th><th>Toplam Gelir</th></tr></thead>
+        <tbody>${d.kategori_satis.map(r => `<tr>
+          <td>${r.kategori}</td><td>${r.satis_adedi}</td>
+          <td style="color:var(--accent-dark);font-weight:700">${para(r.toplam_gelir)}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    // Aylık ciro
+    const maxCiro = Math.max(...d.aylik_ciro.map(r=>r.ciro), 1);
+    const ciroHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">📈 Aylık Ciro</div>
+      <div style="background:var(--white);border:1px solid var(--border);padding:16px;margin-bottom:28px">
+        ${d.aylik_ciro.length === 0 ? '<p style="color:var(--text-muted);font-size:13px">Henüz veri yok</p>' :
+          d.aylik_ciro.map(r => `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <span style="font-size:12px;color:var(--text-muted);width:65px;flex-shrink:0">${r.ay}</span>
+              <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+                <div style="width:${(r.ciro/maxCiro*100).toFixed(1)}%;height:100%;background:var(--accent);border-radius:4px"></div>
+              </div>
+              <span style="font-size:12px;color:var(--accent-dark);font-weight:700;width:90px;text-align:right">${para(r.ciro)}</span>
+            </div>`).join('')}
+      </div>`;
+
+    // Son siparişler
+    const siparisHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🕐 Son Siparişler</div>
+      <table class="stat-table">
+        <thead><tr><th>#</th><th>Müşteri</th><th>Ürün</th><th>Tutar</th><th>Durum</th></tr></thead>
+        <tbody>${d.son_siparisler.map(r => `<tr>
+          <td>${r.id}</td><td>${r.musteri||'-'}</td><td>${r.urun||'-'}</td>
+          <td style="color:var(--accent-dark);font-weight:700">${para(r.amount)}</td>
+          <td><span class="status-badge ${r.status==='onaylandı'?'onaylandi':r.status==='iptal'?'iptal':'beklemede'}">${r.status}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    el.innerHTML = kpiHTML + ciroHTML + satisHTML + etkinlikHTML + kategoriHTML + siparisHTML;
+  } catch(e) {
+    el.innerHTML = `<div class="form-msg error">Rapor yüklenemedi: ${e.message}</div>`;
+  }
+}
+
 // ── CHAT ─────────────────────────────────────────────────────
 async function adminTicketCevapla(ticketId) {
   const textarea = $('ticket-reply-'+ticketId);
@@ -3029,44 +3136,28 @@ async function sendChat() {
   input.value = '';
   msgs.scrollTop = msgs.scrollHeight;
 
-  // Yazıyor göstergesi
-  const typingId = 'typing-' + Date.now();
-  msgs.innerHTML += `<div class="chat-msg bot" id="${typingId}" style="color:var(--text-muted);font-style:italic">Yazıyor...</div>`;
-  msgs.scrollTop = msgs.scrollHeight;
-
-  chatHistory.push({role:'user', content: userMsg});
-
+  // Mesajı support_tickets'a kaydet
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const body = { message: userMsg, name: currentUser ? currentUser.full_name : 'Ziyaretçi', email: currentUser ? currentUser.email : 'ziyaretci@ktu.edu.tr' };
+    if (currentUser) body.user_id = currentUser.id;
+    const r = await fetch(`${API}/destek-mesaji`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `Sen KTÜ Sanat Galerisi'nin canlı destek asistanısın. Adın "Sanat Asistanı". 
-Görevin: Kullanıcılara sanat eserleri, etkinlikler, satın alma, kargo, iade ve galeri hakkında yardımcı olmak.
-Galeri hakkında bilgiler:
-- Galeri adı: KTÜ Sanat Galerisi, Dijital Koleksiyon Arşivi
-- Rönesans'tan Modern Sanata kapsamlı koleksiyon
-- Eserler satın alınabilir, favorilere eklenebilir
-- Atölye ve etkinliklere rezervasyon yapılabilir
-- İndirim kuponları: SANAT10 (%10), KTU2025 (%20)
-- Destek için hesabım > destek formu kullanılabilir
-Kısa, samimi ve yardımsever cevaplar ver. Türkçe konuş.`,
-        messages: chatHistory
-      })
+      body: JSON.stringify(body)
     });
-    const data = await res.json();
-    const botReply = data.content?.[0]?.text || 'Üzgünüm, şu an cevap veremiyorum. Lütfen destek formunu kullanın.';
-    chatHistory.push({role:'assistant', content: botReply});
-    const typing = $(typingId);
-    if (typing) { typing.id=''; typing.style.cssText=''; typing.textContent=botReply; }
+    const d = await r.json();
+    if (r.ok) {
+      msgs.innerHTML += `<div class="chat-msg bot">Mesajınız alındı! Talep numaranız: <b>#${d.ticket_id}</b><br><span style="font-size:12px;opacity:.8">Destek ekibimiz en kısa sürede yanıt verecek. Yanıtı <b>Hesabım → Destek</b> bölümünden takip edebilirsiniz.</span></div>`;
+      if (currentUser) loadMyTickets();
+    } else {
+      msgs.innerHTML += `<div class="chat-msg bot">Mesajınız gönderilemedi. Lütfen tekrar deneyin.</div>`;
+    }
   } catch {
-    const typing = $(typingId);
-    if (typing) { typing.textContent = 'Bağlantı hatası. Lütfen destek formumuzu kullanın.'; }
+    msgs.innerHTML += `<div class="chat-msg bot">Bağlantı hatası. Lütfen destek formunu kullanın.</div>`;
   }
   msgs.scrollTop = msgs.scrollHeight;
 }
+
 
 // ── INIT ─────────────────────────────────────────────────────
 if (loadSession()) {
