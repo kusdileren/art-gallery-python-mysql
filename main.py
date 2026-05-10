@@ -270,24 +270,44 @@ def rezervasyon_iptal(reservation_id: int):
 def satin_al(p: Purchase):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+    
     discount = 0
     if p.coupon_code:
-        cursor.execute("SELECT discount_percent FROM coupons WHERE code=%s AND is_active=1", (p.coupon_code,))
+        cursor.execute(
+            "SELECT discount_percent FROM coupons WHERE code=%s AND is_active=1",
+            (p.coupon_code,)
+        )
         coupon = cursor.fetchone()
         if coupon:
             discount = coupon['discount_percent']
+
     if p.artwork_id:
-        cursor.execute("SELECT price FROM artworks WHERE id=%s", (p.artwork_id,))
+        cursor.execute("SELECT price, stock FROM artworks WHERE id=%s", (p.artwork_id,))
         item = cursor.fetchone()
         if not item:
             conn.close()
             raise HTTPException(status_code=404, detail="Eser bulunamadı")
+        
+        # ✅ STOK KONTROLÜ
+        if item['stock'] <= 0:
+            conn.close()
+            raise HTTPException(status_code=400, detail="Bu eser stokta yok")
+        
         price = float(item['price']) * (1 - discount / 100)
+        
         cursor.execute("""
             INSERT INTO orders (user_id, artwork_id, amount, payment_method, status)
             VALUES (%s, %s, %s, %s, 'onaylandı')
         """, (p.user_id, p.artwork_id, price, p.payment_method))
+        
+        # ✅ STOĞU AZALT
+        cursor.execute(
+            "UPDATE artworks SET stock = stock - 1 WHERE id=%s AND stock > 0",
+            (p.artwork_id,)
+        )
+
     elif p.event_id:
+        # event kısmı değişmiyor
         cursor.execute("SELECT price FROM events WHERE id=%s", (p.event_id,))
         item = cursor.fetchone()
         if not item:
@@ -298,6 +318,7 @@ def satin_al(p: Purchase):
             INSERT INTO orders (user_id, event_id, amount, payment_method, status)
             VALUES (%s, %s, %s, %s, 'onaylandı')
         """, (p.user_id, p.event_id, price, p.payment_method))
+
     conn.commit()
     oid = cursor.lastrowid
     conn.close()
