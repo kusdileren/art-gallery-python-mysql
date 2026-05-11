@@ -1,10 +1,36 @@
-from fastapi import FastAPI, HTTPException, Depends, UploadFile, File
+from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
 from database import get_db_connection
+from jose import JWTError, jwt
+from datetime import datetime, timedelta
 import os, uuid, shutil, bcrypt
+
+SECRET_KEY = os.getenv("JWT_SECRET", "ktu-sanat-galerisi-gizli-anahtar-2024-xK9mP")
+ALGORITHM = "HS256"
+TOKEN_EXPIRE_HOURS = 24
+
+def token_olustur(user_id: int, role: str) -> str:
+    expire = datetime.utcnow() + timedelta(hours=TOKEN_EXPIRE_HOURS)
+    return jwt.encode({"sub": str(user_id), "role": role, "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+
+def token_coz(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Giriş yapmanız gerekiyor")
+    token = authorization.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return {"user_id": int(payload["sub"]), "role": payload["role"]}
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Geçersiz veya süresi dolmuş oturum")
+
+def admin_mi(authorization: Optional[str] = Header(None)):
+    user = token_coz(authorization)
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Bu işlem için admin yetkisi gerekli")
+    return user
 
 app = FastAPI(title="KTÜ Sanat Galerisi API")
 
@@ -173,7 +199,7 @@ def etkinlik_detay(event_id: int):
 
 # ─── MADDE 3: FAVORİLERE EKLEME ────────────────────────────
 @app.post("/favori-ekle")
-def favori_ekle(fav: Favorite):
+def favori_ekle(fav: Favorite, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM favorites WHERE user_id=%s AND artwork_id=%s", (fav.user_id, fav.artwork_id))
@@ -186,7 +212,7 @@ def favori_ekle(fav: Favorite):
     return {"mesaj": "Favorilere eklendi"}
 
 @app.get("/favoriler/{user_id}")
-def favoriler(user_id: int):
+def favoriler(user_id: int, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -201,7 +227,7 @@ def favoriler(user_id: int):
     return res
 
 @app.delete("/favori-kaldir/{user_id}/{artwork_id}")
-def favori_kaldir(user_id: int, artwork_id: int):
+def favori_kaldir(user_id: int, artwork_id: int, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM favorites WHERE user_id=%s AND artwork_id=%s", (user_id, artwork_id))
@@ -211,7 +237,7 @@ def favori_kaldir(user_id: int, artwork_id: int):
 
 # ─── MADDE 4 & 5: REZERVASYON OLUŞTURMA VE GÜNCELLEME ──────
 @app.post("/rezervasyon")
-def rezervasyon_olustur(res: Reservation):
+def rezervasyon_olustur(res: Reservation, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     # Kontenjan kontrolü
@@ -238,7 +264,7 @@ def rezervasyon_olustur(res: Reservation):
     return {"mesaj": "Rezervasyon oluşturuldu", "reservation_id": rid}
 
 @app.put("/rezervasyon-guncelle")
-def rezervasyon_guncelle(upd: ReservationUpdate):
+def rezervasyon_guncelle(upd: ReservationUpdate, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor()
     fields = []
@@ -257,7 +283,7 @@ def rezervasyon_guncelle(upd: ReservationUpdate):
     return {"mesaj": "Rezervasyon güncellendi"}
 
 @app.delete("/rezervasyon-iptal/{reservation_id}")
-def rezervasyon_iptal(reservation_id: int):
+def rezervasyon_iptal(reservation_id: int, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE reservations SET status='iptal' WHERE id=%s", (reservation_id,))
@@ -267,14 +293,14 @@ def rezervasyon_iptal(reservation_id: int):
 
 # ─── MADDE 6: SATIN ALMA VE ÖDEME ──────────────────────────
 @app.post("/satin-al")
-def satin_al(p: Purchase):
+def satin_al(p: Purchase, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
     discount = 0
     if p.coupon_code:
         cursor.execute(
-            "SELECT discount_percent FROM coupons WHERE code=%s AND is_active=1",
+            "SELECT discount_percent FROM coupons WHERE code=%s AND is_active=1 AND (expires_at IS NULL OR expires_at > NOW())",
             (p.coupon_code,)
         )
         coupon = cursor.fetchone()
@@ -350,11 +376,12 @@ def giris(creds: UserLogin):
     conn.close()
     if not user or not bcrypt.checkpw(creds.password.encode("utf-8"), user["password"].encode("utf-8")):
         raise HTTPException(status_code=401, detail="Hatalı e-posta veya şifre")
-    user.pop("password", None)  # hash'i frontend'e gönderme
-    return {"mesaj": "Giriş başarılı", "user": user}
+    token = token_olustur(user["id"], user["role"])  # token eklendi
+    user.pop("password", None)
+    return {"mesaj": "Giriş başarılı", "token": token, "user": user}
 
 @app.put("/profil-guncelle")
-def profil_guncelle(upd: UserUpdate):
+def profil_guncelle(upd: UserUpdate, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor()
     fields, vals = [], []
@@ -370,7 +397,7 @@ def profil_guncelle(upd: UserUpdate):
     return {"mesaj": "Profil güncellendi"}
 
 @app.put("/sifre-degistir")
-def sifre_degistir(req: PasswordChange):
+def sifre_degistir(req: PasswordChange, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, password FROM users WHERE id=%s", (req.user_id,))
@@ -386,7 +413,7 @@ def sifre_degistir(req: PasswordChange):
 
 # ─── MADDE 8: SİPARİŞ VE REZERVASYON TAKİBİ ───────────────
 @app.get("/siparislerim/{user_id}")
-def siparislerim(user_id: int):
+def siparislerim(user_id: int, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -404,7 +431,7 @@ def siparislerim(user_id: int):
     return res
 
 @app.get("/rezervasyonlarim/{user_id}")
-def rezervasyonlarim(user_id: int):
+def rezervasyonlarim(user_id: int, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -447,7 +474,7 @@ def kupon_kontrol(body: dict):
     code = body.get("code", "")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM coupons WHERE code=%s AND is_active=1", (code,))
+    cursor.execute("SELECT * FROM coupons WHERE code=%s AND is_active=1 AND (expires_at IS NULL OR expires_at > NOW())", (code,))
     coupon = cursor.fetchone()
     conn.close()
     if not coupon:
@@ -456,7 +483,7 @@ def kupon_kontrol(body: dict):
 
 # ─── MADDE 10: MÜŞTERİ DESTEK ──────────────────────────────
 @app.post("/destek-mesaji")
-def destek_mesaji(msg: SupportMessage):
+def destek_mesaji(msg: SupportMessage, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -469,7 +496,7 @@ def destek_mesaji(msg: SupportMessage):
     return {"mesaj": "Mesajınız alındı", "ticket_id": tid}
 
 @app.get("/destek-taleplerim/{user_id}")
-def destek_taleplerim(user_id: int):
+def destek_taleplerim(user_id: int, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM support_tickets WHERE user_id=%s ORDER BY created_at DESC", (user_id,))
@@ -524,7 +551,7 @@ def karsilastir_etkinlikler(body: dict):
     return res
 
 @app.post("/karsilastirma-kaydet")
-def karsilastirma_kaydet(body: dict):
+def karsilastirma_kaydet(body: dict, current_user=Depends(token_coz)):
     import json
     user_id = body.get("user_id")
     type_ = body.get("type")
@@ -542,7 +569,7 @@ def karsilastirma_kaydet(body: dict):
     return {"mesaj": "Karşılaştırma kaydedildi"}
 
 @app.get("/karsilastirma-gecmisi/{user_id}")
-def karsilastirma_gecmisi(user_id: int):
+def karsilastirma_gecmisi(user_id: int, current_user=Depends(token_coz)):
     import json
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -557,7 +584,7 @@ def karsilastirma_gecmisi(user_id: int):
 
 # ─── MADDE 12: YORUM EKLEME ─────────────────────────────────
 @app.post("/yorum-yap")
-def yorum_yap(rev: Review):
+def yorum_yap(rev: Review, current_user=Depends(token_coz)):
     if not rev.artwork_id and not rev.event_id:
         raise HTTPException(status_code=400, detail="artwork_id veya event_id zorunludur")
     conn = get_db_connection()
@@ -565,6 +592,15 @@ def yorum_yap(rev: Review):
 
     is_verified = False
     if rev.artwork_id:
+        # ✅ TEKRAR YORUM KONTROLÜ
+        cursor.execute(
+            "SELECT id FROM reviews WHERE user_id=%s AND artwork_id=%s",
+            (rev.user_id, rev.artwork_id)
+        )
+        if cursor.fetchone():
+            conn.close()
+            raise HTTPException(status_code=400, detail="Bu esere zaten yorum yaptınız")
+
         # Doğrulama: kullanıcı eseri satın almış mı?
         cursor.execute("""
             SELECT id FROM orders WHERE user_id=%s AND artwork_id=%s AND status='onaylandı'
@@ -575,6 +611,15 @@ def yorum_yap(rev: Review):
             VALUES (%s, %s, %s, %s, %s)
         """, (rev.user_id, rev.artwork_id, rev.rating, rev.comment, is_verified))
     else:
+        # ✅ TEKRAR YORUM KONTROLÜ (etkinlik)
+        cursor.execute(
+            "SELECT id FROM reviews WHERE user_id=%s AND event_id=%s",
+            (rev.user_id, rev.event_id)
+        )
+        if cursor.fetchone():
+            conn.close()
+            raise HTTPException(status_code=400, detail="Bu etkinliğe zaten yorum yaptınız")
+
         # Doğrulama: kullanıcı etkinliğe rezervasyon yapmış mı?
         cursor.execute("""
             SELECT id FROM reservations WHERE user_id=%s AND event_id=%s AND status='onaylandı'
@@ -643,7 +688,7 @@ def etkinlik_yorumlari(event_id: int, siralama: str = "yeni"):
 
 # ─── MADDE 13: YORUMLARI DEĞERLENDİRME ─────────────────────
 @app.post("/yorum-oy")
-def yorum_oy(vote: ReviewVote):
+def yorum_oy(vote: ReviewVote, current_user=Depends(token_coz)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM review_votes WHERE review_id=%s AND user_id=%s", (vote.review_id, vote.user_id))
@@ -676,7 +721,7 @@ def ortalama_puan(artwork_id: int):
 
 # ─── MADDE 14: YORUMLARA YANIT VERME ───────────────────────
 @app.post("/yorum-yanit")
-def yorum_yanit(rep: ReviewReply):
+def yorum_yanit(rep: ReviewReply, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -813,7 +858,7 @@ def images_listesi():
         return {"images": []}
 
 @app.post("/admin/resim-yukle")
-async def resim_yukle(file: UploadFile = File(...)):
+async def resim_yukle(file: UploadFile = File(...), current_user=Depends(admin_mi)):
     """Admin panelinden resim yükler, images/ klasörüne kaydeder"""
     allowed_ext = {".jpg", ".jpeg", ".png", ".gif", ".webp"}
     ext = os.path.splitext(file.filename.lower())[1]
@@ -832,7 +877,7 @@ class ArtistCreate(BaseModel):
     nationality: Optional[str] = None
 
 @app.post("/admin/sanatci-ekle")
-def admin_sanatci_ekle(a: ArtistCreate):
+def admin_sanatci_ekle(a: ArtistCreate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id FROM artists WHERE name=%s", (a.name,))
@@ -863,7 +908,7 @@ class CategoryCreate(BaseModel):
     name: str
 
 @app.post("/admin/kategori-ekle")
-def admin_kategori_ekle(c: CategoryCreate):
+def admin_kategori_ekle(c: CategoryCreate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id FROM categories WHERE name=%s", (c.name,))
@@ -878,7 +923,7 @@ def admin_kategori_ekle(c: CategoryCreate):
     return {"mesaj": "Kategori eklendi", "category_id": cid}
 
 @app.get("/admin/kullanicilar")
-def admin_kullanicilar():
+def admin_kullanicilar(current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT id, full_name, email, role, created_at FROM users ORDER BY id DESC")
@@ -887,7 +932,7 @@ def admin_kullanicilar():
     return res
 
 @app.get("/admin/siparisler")
-def admin_siparisler():
+def admin_siparisler(current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -904,7 +949,7 @@ def admin_siparisler():
     return res
 
 @app.get("/admin/yorumlar")
-def admin_yorumlar():
+def admin_yorumlar(current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -923,7 +968,7 @@ def admin_yorumlar():
     return res
 
 @app.get("/admin/destek-talepleri")
-def admin_destek_talepleri():
+def admin_destek_talepleri(current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM support_tickets ORDER BY created_at DESC")
@@ -932,7 +977,7 @@ def admin_destek_talepleri():
     return res
 
 @app.post("/admin/eser-ekle")
-def admin_eser_ekle(aw: ArtworkCreate):
+def admin_eser_ekle(aw: ArtworkCreate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -945,7 +990,7 @@ def admin_eser_ekle(aw: ArtworkCreate):
     return {"mesaj": "Eser eklendi", "artwork_id": aid}
 
 @app.post("/admin/etkinlik-ekle")
-def admin_etkinlik_ekle(ev: EventCreate):
+def admin_etkinlik_ekle(ev: EventCreate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -997,7 +1042,7 @@ class CouponCreate(BaseModel):
 
 # Eser güncelle
 @app.put("/admin/eser-guncelle/{artwork_id}")
-def admin_eser_guncelle(artwork_id: int, aw: ArtworkUpdate):
+def admin_eser_guncelle(artwork_id: int, aw: ArtworkUpdate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     fields, vals = [], []
@@ -1020,7 +1065,7 @@ def admin_eser_guncelle(artwork_id: int, aw: ArtworkUpdate):
 
 # Eser sil
 @app.delete("/admin/eser-sil/{artwork_id}")
-def admin_eser_sil(artwork_id: int):
+def admin_eser_sil(artwork_id: int, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     # Bağımlı kayıtları temizle
@@ -1037,7 +1082,7 @@ def admin_eser_sil(artwork_id: int):
 
 # Etkinlik güncelle
 @app.put("/admin/etkinlik-guncelle/{event_id}")
-def admin_etkinlik_guncelle(event_id: int, ev: EventUpdate):
+def admin_etkinlik_guncelle(event_id: int, ev: EventUpdate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     fields, vals = [], []
@@ -1060,7 +1105,7 @@ def admin_etkinlik_guncelle(event_id: int, ev: EventUpdate):
 
 # Etkinlik sil
 @app.delete("/admin/etkinlik-sil/{event_id}")
-def admin_etkinlik_sil(event_id: int):
+def admin_etkinlik_sil(event_id: int, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM review_votes WHERE review_id IN (SELECT id FROM reviews WHERE event_id=%s)", (event_id,))
@@ -1075,7 +1120,7 @@ def admin_etkinlik_sil(event_id: int):
 
 # Kullanıcı sil
 @app.delete("/admin/kullanici-sil/{user_id}")
-def admin_kullanici_sil(user_id: int):
+def admin_kullanici_sil(user_id: int, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM review_votes WHERE user_id=%s", (user_id,))
@@ -1094,7 +1139,7 @@ def admin_kullanici_sil(user_id: int):
 
 # Kullanıcı rolü değiştir
 @app.put("/admin/kullanici-rol/{user_id}")
-def admin_kullanici_rol(user_id: int, upd: UserRoleUpdate):
+def admin_kullanici_rol(user_id: int, upd: UserRoleUpdate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET role=%s WHERE id=%s", (upd.role, user_id))
@@ -1104,7 +1149,7 @@ def admin_kullanici_rol(user_id: int, upd: UserRoleUpdate):
 
 # Sipariş durumu güncelle
 @app.put("/admin/siparis-durum/{order_id}")
-def admin_siparis_durum(order_id: int, upd: OrderStatusUpdate):
+def admin_siparis_durum(order_id: int, upd: OrderStatusUpdate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE orders SET status=%s WHERE id=%s", (upd.status, order_id))
@@ -1114,7 +1159,7 @@ def admin_siparis_durum(order_id: int, upd: OrderStatusUpdate):
 
 # Sipariş sil
 @app.delete("/admin/siparis-sil/{order_id}")
-def admin_siparis_sil(order_id: int):
+def admin_siparis_sil(order_id: int, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM orders WHERE id=%s", (order_id,))
@@ -1124,7 +1169,7 @@ def admin_siparis_sil(order_id: int):
 
 # Yorum sil
 @app.delete("/admin/yorum-sil/{review_id}")
-def admin_yorum_sil(review_id: int):
+def admin_yorum_sil(review_id: int, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM review_votes WHERE review_id=%s", (review_id,))
@@ -1136,7 +1181,7 @@ def admin_yorum_sil(review_id: int):
 
 # Destek talebi durum güncelle
 @app.put("/admin/ticket-durum/{ticket_id}")
-def admin_ticket_durum(ticket_id: int, upd: TicketStatusUpdate):
+def admin_ticket_durum(ticket_id: int, upd: TicketStatusUpdate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("UPDATE support_tickets SET status=%s WHERE id=%s", (upd.status, ticket_id))
@@ -1149,7 +1194,7 @@ class TicketReply(BaseModel):
     reply: str
 
 @app.put("/admin/ticket-cevapla/{ticket_id}")
-def admin_ticket_cevapla(ticket_id: int, rep: TicketReply):
+def admin_ticket_cevapla(ticket_id: int, rep: TicketReply, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
@@ -1162,7 +1207,7 @@ def admin_ticket_cevapla(ticket_id: int, rep: TicketReply):
 
 # Destek talebi sil
 @app.delete("/admin/ticket-sil/{ticket_id}")
-def admin_ticket_sil(ticket_id: int):
+def admin_ticket_sil(ticket_id: int, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM support_tickets WHERE id=%s", (ticket_id,))
@@ -1172,7 +1217,7 @@ def admin_ticket_sil(ticket_id: int):
 
 # Kupon ekle
 @app.post("/admin/kupon-ekle")
-def admin_kupon_ekle(c: CouponCreate):
+def admin_kupon_ekle(c: CouponCreate, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -1186,7 +1231,7 @@ def admin_kupon_ekle(c: CouponCreate):
 
 # Kupon sil
 @app.delete("/admin/kupon-sil/{coupon_id}")
-def admin_kupon_sil(coupon_id: int):
+def admin_kupon_sil(coupon_id: int, current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM coupons WHERE id=%s", (coupon_id,))
@@ -1196,7 +1241,7 @@ def admin_kupon_sil(coupon_id: int):
 
 # Tüm kuponları listele (admin için)
 @app.get("/admin/kuponlar")
-def admin_kuponlar():
+def admin_kuponlar(current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM coupons ORDER BY id DESC")
@@ -1206,7 +1251,7 @@ def admin_kuponlar():
 
 # Tüm rezervasyonları listele (admin)
 @app.get("/admin/rezervasyonlar")
-def admin_rezervasyonlar():
+def admin_rezervasyonlar(current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -1222,7 +1267,7 @@ def admin_rezervasyonlar():
 
 # Rezervasyon durum güncelle (admin)
 @app.put("/admin/rezervasyon-durum/{reservation_id}")
-def admin_rezervasyon_durum(reservation_id: int, upd: dict):
+def admin_rezervasyon_durum(reservation_id: int, upd: dict, current_user=Depends(admin_mi)):
     status = upd.get("status")
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -1235,7 +1280,7 @@ def admin_rezervasyon_durum(reservation_id: int, upd: dict):
 # Bu kodu main.py'nin EN SONUNA ekle (son satırdan önce)
 
 @app.get("/admin/rapor")
-def admin_rapor():
+def admin_rapor(current_user=Depends(admin_mi)):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
