@@ -890,7 +890,7 @@
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
     <div class="modal-grid">
-      <img class="modal-img" id="modal-img" src="" alt="" onerror="this.src='https://via.placeholder.com/400x400/f0ebe4/9a9090?text=🖼️'">
+      <img class="modal-img" id="modal-img" src="" alt="" onerror="this.src='images/placeholder.jpg'">
       <div class="modal-body">
         <div class="modal-artist" id="modal-artist"></div>
         <div class="modal-title" id="modal-title"></div>
@@ -1277,15 +1277,31 @@ let currentUser = null;
 // ── OTURUM KALICILIĞI ─────────────────────────────────────────
 function saveSession() {
   if (currentUser) localStorage.setItem('sanat_currentUser', JSON.stringify(currentUser));
-  else localStorage.removeItem('sanat_currentUser');
+  else { localStorage.removeItem('sanat_currentUser'); localStorage.removeItem('sanat_token'); }
 }
 function loadSession() {
   try {
     const saved = localStorage.getItem('sanat_currentUser');
     if (saved) { currentUser = JSON.parse(saved); return true; }
-  } catch { localStorage.removeItem('sanat_currentUser'); }
+  } catch { localStorage.removeItem('sanat_currentUser'); localStorage.removeItem('sanat_token'); }
   return false;
 }
+function getToken() { return localStorage.getItem('sanat_token') || ''; }
+
+async function authFetch(url, options = {}) {
+  const token = getToken();
+  options.headers = options.headers || {};
+  if (token) options.headers['Authorization'] = 'Bearer ' + token;
+  const r = await fetch(url, options);
+  if (r.status === 401) {
+    currentUser = null; saveSession(); setLoggedIn(false);
+    showPage('auth'); setAuthTab('login');
+    showNotif('Oturumunuz sona erdi, tekrar giriş yapın.', 'error');
+    throw new Error('Unauthorized');
+  }
+  return r;
+}
+
 
 // ── UTILITY ──────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -1353,6 +1369,7 @@ async function girisYap() {
     const r = await fetch(`${API}/giris`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
     if (r.ok) {
       const d = await r.json(); currentUser = d.user;
+      if (d.token) localStorage.setItem('sanat_token', d.token);
       saveSession();
       setLoggedIn(true);
       msg.innerHTML='<div class="form-msg success">✓ Giriş başarılı!</div>';
@@ -1477,7 +1494,7 @@ function adminEserDuzenle(id, title, price, discount, stock) {
   if (yeni_indirim === null) return;
   const yeni_stok = prompt('Yeni stok adedi:', stock);
   if (yeni_stok === null) return;
-  fetch(`${API}/admin/eser-guncelle/${id}`, {
+  authFetch(`${API}/admin/eser-guncelle/${id}`, {
     method:'PUT', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({price: parseFloat(yeni_fiyat)||price, discount_percent: parseInt(yeni_indirim)||0, stock: parseInt(yeni_stok)||1})
   }).then(r=>r.json()).then(d=>{ showNotif(d.mesaj||'Güncellendi.'); loadAdminArtworks(); }).catch(()=>showNotif('Hata!'));
@@ -1512,7 +1529,7 @@ function adminEtkinlikDuzenle(id, title, capacity, price) {
   if (yeni_kapasite === null) return;
   const yeni_fiyat = prompt('Yeni fiyat (₺):', price);
   if (yeni_fiyat === null) return;
-  fetch(`${API}/admin/etkinlik-guncelle/${id}`, {
+  authFetch(`${API}/admin/etkinlik-guncelle/${id}`, {
     method:'PUT', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({capacity: parseInt(yeni_kapasite)||capacity, price: parseFloat(yeni_fiyat)||price})
   }).then(r=>r.json()).then(d=>{ showNotif(d.mesaj||'Güncellendi.'); loadAdminEvents(); }).catch(()=>showNotif('Hata!'));
@@ -1521,7 +1538,7 @@ function adminEtkinlikDuzenle(id, title, capacity, price) {
 async function loadAdminUsers() {
   $('admin-users-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
-    const r = await fetch(`${API}/admin/kullanicilar`);
+    const r = await authFetch(`${API}/admin/kullanicilar`);
     if (!r.ok) throw new Error();
     const data = await r.json();
     $('admin-users-list').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -1550,7 +1567,7 @@ async function loadAdminUsers() {
 function adminRolToggle(userId, mevcutRol) {
   const yeniRol = mevcutRol === 'admin' ? 'kullanici' : 'admin';
   if (!confirm(`Rolü "${yeniRol}" olarak değiştir?`)) return;
-  fetch(`${API}/admin/kullanici-rol/${userId}`, {
+  authFetch(`${API}/admin/kullanici-rol/${userId}`, {
     method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({role: yeniRol})
   }).then(r=>r.json()).then(d=>{ showNotif(d.mesaj||'Rol güncellendi.'); loadAdminUsers(); }).catch(()=>showNotif('Hata!'));
 }
@@ -1559,7 +1576,7 @@ const ORDER_STATUS = ['beklemede','onaylandı','kargoda','teslim_edildi','iptal'
 async function loadAdminOrders() {
   $('admin-orders-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
-    const r = await fetch(`${API}/admin/siparisler`);
+    const r = await authFetch(`${API}/admin/siparisler`);
     if (!r.ok) throw new Error();
     const data = await r.json();
     $('admin-orders-list').innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
@@ -1592,7 +1609,7 @@ async function loadAdminOrders() {
 async function loadAdminReviews() {
   $('admin-reviews-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
-    const r = await fetch(`${API}/admin/yorumlar`);
+    const r = await authFetch(`${API}/admin/yorumlar`);
     if (!r.ok) throw new Error();
     const data = await r.json();
     if (!data.length) { $('admin-reviews-list').innerHTML='<p style="color:var(--text-muted)">Henüz yorum yok.</p>'; return; }
@@ -1622,7 +1639,7 @@ async function adminYanıtGonder(reviewId) {
   if (!reply) return;
   const msgEl = $(`reply-msg-${reviewId}`);
   try {
-    const r = await fetch(`${API}/yorum-yanit`, {method:'POST', headers:{'Content-Type':'application/json'},
+    const r = await authFetch(`${API}/yorum-yanit`, {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({review_id: reviewId, admin_id: currentUser.id, reply})});
     if (r.ok) { msgEl.innerHTML='<div class="form-msg success" style="margin-top:6px">✓ Yanıt kaydedildi.</div>'; setTimeout(()=>loadAdminReviews(),1200); }
     else { msgEl.innerHTML='<div class="form-msg error" style="margin-top:6px">Hata oluştu.</div>'; }
@@ -1633,7 +1650,7 @@ const TICKET_STATUS = ['açık','işlemde','kapatıldı'];
 async function loadAdminTickets() {
   $('admin-tickets-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
-    const r = await fetch(`${API}/admin/destek-talepleri`);
+    const r = await authFetch(`${API}/admin/destek-talepleri`);
     if (!r.ok) throw new Error();
     const data = await r.json();
     $('admin-tickets-list').innerHTML = data.length ? data.map(t=>`
@@ -1678,7 +1695,7 @@ async function loadAdminTickets() {
 async function loadAdminCoupons() {
   $('admin-coupons-list').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
   try {
-    const r = await fetch(`${API}/admin/kuponlar`);
+    const r = await authFetch(`${API}/admin/kuponlar`);
     const data = await r.json();
     $('admin-coupons-list').innerHTML = `
       <div style="background:var(--cream-light);padding:16px;border-radius:8px;margin-bottom:16px">
@@ -1721,7 +1738,7 @@ async function adminKuponEkle() {
   };
   if (!body.code || !body.discount_percent) { $('cp-msg').innerHTML='<span style="color:red">Kod ve indirim zorunlu!</span>'; return; }
   try {
-    const r = await fetch(`${API}/admin/kupon-ekle`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    const r = await authFetch(`${API}/admin/kupon-ekle`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
     if (r.ok) { $('cp-msg').innerHTML='<span style="color:green">✓ Kupon eklendi.</span>'; setTimeout(loadAdminCoupons, 800); }
     else { const d = await r.json(); $('cp-msg').innerHTML=`<span style="color:red">${d.detail||'Hata!'}</span>`; }
   } catch { $('cp-msg').innerHTML='<span style="color:red">Bağlantı hatası!</span>'; }
@@ -1815,7 +1832,7 @@ async function adminEserKaydet() {
   const artistName = $('aw-artist-name').value.trim();
   if (!artistId && artistName) {
     try {
-      const ar = await fetch(`${API}/admin/sanatci-ekle`, {
+      const ar = await authFetch(`${API}/admin/sanatci-ekle`, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({name: artistName})
       });
@@ -1828,7 +1845,7 @@ async function adminEserKaydet() {
   const categoryName = $('aw-cat-name').value.trim();
   if (!categoryId && categoryName) {
     try {
-      const cr = await fetch(`${API}/admin/kategori-ekle`, {
+      const cr = await authFetch(`${API}/admin/kategori-ekle`, {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({name: categoryName})
       });
@@ -1851,7 +1868,7 @@ async function adminEserKaydet() {
 
   try {
     msg.innerHTML='<div class="form-msg" style="color:var(--text-muted)">Kaydediliyor...</div>';
-    const r = await fetch(`${API}/admin/eser-ekle`, {
+    const r = await authFetch(`${API}/admin/eser-ekle`, {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
     });
     if (r.ok) {
@@ -1922,7 +1939,7 @@ async function adminEtkinlikKaydet() {
   };
   try {
     msg.innerHTML='<div class="form-msg" style="color:var(--text-muted)">Kaydediliyor...</div>';
-    const r = await fetch(`${API}/admin/etkinlik-ekle`, {
+    const r = await authFetch(`${API}/admin/etkinlik-ekle`, {
       method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
     });
     if (r.ok) {
@@ -1969,20 +1986,20 @@ function loadAccountData() {
 }
 async function profilGuncelle() {
   if (!currentUser) return;
-  const r = await fetch(`${API}/profil-guncelle`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,full_name:$('profile-name').value,email:$('profile-email').value})});
+  const r = await authFetch(`${API}/profil-guncelle`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,full_name:$('profile-name').value,email:$('profile-email').value})});
   if (r.ok) { currentUser.full_name=$('profile-name').value; $('user-name-display').textContent=currentUser.full_name; $('profile-msg').innerHTML='<div class="form-msg success">✓ Profil güncellendi.</div>'; }
   else $('profile-msg').innerHTML='<div class="form-msg error">Hata oluştu.</div>';
 }
 async function sifreDegistir() {
   const old=$('old-pass').value, nw=$('new-pass').value, nw2=$('new-pass2').value;
   if (nw !== nw2) { $('password-msg').innerHTML='<div class="form-msg error">Yeni şifreler eşleşmiyor.</div>'; return; }
-  const r = await fetch(`${API}/sifre-degistir`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,old_password:old,new_password:nw})});
+  const r = await authFetch(`${API}/sifre-degistir`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,old_password:old,new_password:nw})});
   const d = await r.json();
   $('password-msg').innerHTML = r.ok ? `<div class="form-msg success">✓ ${d.mesaj}</div>` : `<div class="form-msg error">${d.detail}</div>`;
 }
 async function loadOrders() {
   if (!currentUser) return;
-  const r = await fetch(`${API}/siparislerim/${currentUser.id}`);
+  const r = await authFetch(`${API}/siparislerim/${currentUser.id}`);
   const list = await r.json();
   $('orders-list').innerHTML = list.length ? list.map(o => `
     <div style="background:var(--white);border:1px solid var(--border);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
@@ -1998,7 +2015,7 @@ async function loadOrders() {
 }
 async function loadReservations() {
   if (!currentUser) return;
-  const r = await fetch(`${API}/rezervasyonlarim/${currentUser.id}`);
+  const r = await authFetch(`${API}/rezervasyonlarim/${currentUser.id}`);
   const list = await r.json();
   $('reservations-list').innerHTML = list.length ? list.map(res => `
     <div style="background:var(--white);border:1px solid var(--border);padding:16px 20px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
@@ -2014,12 +2031,12 @@ async function loadReservations() {
 }
 async function rezervasyonIptal(id) {
   if (!confirm('Rezervasyonu iptal etmek istiyor musunuz?')) return;
-  await fetch(`${API}/rezervasyon-iptal/${id}`,{method:'DELETE'});
+  await authFetch(`${API}/rezervasyon-iptal/${id}`,{method:'DELETE'});
   showNotif('Rezervasyon iptal edildi.'); loadReservations();
 }
 async function loadFavorites() {
   if (!currentUser) return;
-  const r = await fetch(`${API}/favoriler/${currentUser.id}`);
+  const r = await authFetch(`${API}/favoriler/${currentUser.id}`);
   const list = await r.json();
   $('favorites-grid').innerHTML = list.length ? list.map((e,i) => eserCard(e,i,true)).join('') : '<div class="empty-state">Favori listeniz boş.</div>';
 }
@@ -2028,7 +2045,7 @@ async function loadComparisonHistory() {
   if (!currentUser) return;
   const container = $('comparisons-list');
   try {
-    const r = await fetch(`${API}/karsilastirma-gecmisi/${currentUser.id}`);
+    const r = await authFetch(`${API}/karsilastirma-gecmisi/${currentUser.id}`);
     const list = await r.json();
     if (!list.length) {
       container.innerHTML = '<div class="empty-state">Henüz kaydedilmiş karşılaştırmanız yok.</div>';
@@ -2129,7 +2146,7 @@ function eserCard(eser, idx, isFav=false) {
     <div class="product-card" style="animation-delay:${idx*.06}s" onclick="openModal(${eser.id})">
       <input type="checkbox" class="compare-check" title="Karşılaştırmaya ekle" ${inCompare?'checked':''} onclick="event.stopPropagation();toggleCompare(${eser.id})" ${compareList.length>=3&&!inCompare?'disabled':''}>
       <div class="product-img-wrap">
-        <img src="${img}" alt="${eser.title}" onerror="this.src='https://via.placeholder.com/400x400/f0ebe4/9a9090?text=🖼️'">
+        <img src="${img}" alt="${eser.title}" onerror="this.src='images/placeholder.jpg'">
         ${discounted ? `<div class="product-badge discount">-%${eser.discount_percent}</div>` : ''}
         ${!stokVar ? `<div class="product-badge" style="background:#888;top:40px">Tükendi</div>` : ''}
         <div class="product-overlay">${overlayBtn}</div>
@@ -2392,7 +2409,7 @@ async function loadModalStats(artworkId) {
 }
 async function oyVer(reviewId, isHelpful) {
   if (!currentUser) { showNotif('Oy vermek için giriş yapın.','error'); return; }
-  await fetch(`${API}/yorum-oy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_id:reviewId,user_id:currentUser.id,is_helpful:isHelpful})});
+  await authFetch(`${API}/yorum-oy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_id:reviewId,user_id:currentUser.id,is_helpful:isHelpful})});
   showNotif('Oyunuz kaydedildi.');
   if (currentEser) {
     const activeBtn = document.querySelector('#modal-tab-reviews .review-sort-btn.active');
@@ -2401,16 +2418,18 @@ async function oyVer(reviewId, isHelpful) {
     await loadModalReviews(currentEser.id, activeSort, onlyVerified);
   }
 }
-async function yorumGonder() {
-  if (!currentUser) { showNotif('Yorum için giriş yapın.','error'); return; }
-  const rating = document.querySelector('input[name="star"]:checked')?.value;
-  const comment = $('review-comment').value.trim();
-  if (!rating || !comment) { $('review-msg').innerHTML='<div class="form-msg error">Puan ve yorum zorunludur.</div>'; return; }
-  const r = await fetch(`${API}/yorum-yap`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:currentEser.id,rating:parseInt(rating),comment})});
-  const d = await r.json();
-  $('review-msg').innerHTML = r.ok ? `<div class="form-msg success">✓ ${d.mesaj}${d.dogrulanmis?' (Doğrulanmış satın alım)':''}</div>` : '<div class="form-msg error">Hata oluştu.</div>';
-  $('review-comment').value=''; document.querySelectorAll('input[name="star"]').forEach(s => s.checked=false);
-  await loadModalReviews(currentEser.id);
+  async function yorumGonder() {
+    if (!currentUser) { showNotif('Yorum için giriş yapın.','error'); return; }
+    const rating = document.querySelector('input[name="star"]:checked')?.value;
+    const comment = $('review-comment').value.trim();
+    if (!rating || !comment) { $('review-msg').innerHTML='<div class="form-msg error">Puan ve yorum zorunludur.</div>'; return; }
+    const r = await authFetch(`${API}/yorum-yap`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:currentEser.id,rating:parseInt(rating),comment})});
+    const d = await r.json();
+    $('review-msg').innerHTML = r.ok 
+    ? `<div class="form-msg success">✓ ${d.mesaj}${d.dogrulanmis?' (Doğrulanmış satın alım)':''}</div>` 
+    : `<div class="form-msg error">${d.detail || 'Hata oluştu.'}</div>`;
+    $('review-comment').value=''; document.querySelectorAll('input[name="star"]').forEach(s => s.checked=false);
+    await loadModalReviews(currentEser.id);
 }
 
 // ── FAVORİ ────────────────────────────────────────────────────
@@ -2418,10 +2437,10 @@ async function favoriToggle(artworkId, btn) {
   if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Favori için giriş yapın.','error'); return; }
   const isActive = btn.classList.contains('active');
   if (isActive) {
-    await fetch(`${API}/favori-kaldir/${currentUser.id}/${artworkId}`,{method:'DELETE'});
+    await authFetch(`${API}/favori-kaldir/${currentUser.id}/${artworkId}`,{method:'DELETE'});
     btn.classList.remove('active'); showNotif('Favorilerden kaldırıldı.');
   } else {
-    const r = await fetch(`${API}/favori-ekle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:artworkId})});
+    const r = await authFetch(`${API}/favori-ekle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:artworkId})});
     if (r.ok) { btn.classList.add('active'); showNotif('Favorilere eklendi! ❤️'); }
     else showNotif('Zaten favorilerde.','error');
   }
@@ -2431,10 +2450,10 @@ async function modalFavoriToggle() {
   const btn = $('modal-fav-btn');
   const isActive = btn.textContent.includes('Kaldır');
   if (isActive) {
-    await fetch(`${API}/favori-kaldir/${currentUser.id}/${currentEser.id}`,{method:'DELETE'});
+    await authFetch(`${API}/favori-kaldir/${currentUser.id}/${currentEser.id}`,{method:'DELETE'});
     btn.textContent = '♡ Favorilere Ekle'; showNotif('Favorilerden kaldırıldı.');
   } else {
-    const r = await fetch(`${API}/favori-ekle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:currentEser.id})});
+    const r = await authFetch(`${API}/favori-ekle`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,artwork_id:currentEser.id})});
     if (r.ok) { btn.textContent = '♥ Favorilerden Kaldır'; showNotif('Favorilere eklendi! ❤️'); }
     else showNotif('Zaten favorilerde.','error');
   }
@@ -2517,7 +2536,7 @@ async function renderCompareTable() {
       container.innerHTML = `
         <div style="overflow-x:auto"><table class="compare-table">
           <tr><th></th>${items.map(e=>`<th>${e.title}</th>`).join('')}</tr>
-          <tr><td>Görsel</td>${items.map(e=>`<td><img src="images/${e.image_url}" onerror="this.src='https://via.placeholder.com/80x80/f0ebe4/9a9090?text=🖼️'"></td>`).join('')}</tr>
+          <tr><td>Görsel</td>${items.map(e=>`<td><img src="images/${e.image_url}" onerror="this.src='images/placeholder.jpg'"></td>`).join('')}</tr>
           <tr><td>Sanatçı</td>${items.map(e=>`<td>${e.artist_name||'—'}</td>`).join('')}</tr>
           <tr><td>Kategori</td>${items.map(e=>`<td>${e.category_name||'—'}</td>`).join('')}</tr>
           <tr><td>Fiyat</td>${items.map(e=>`<td style="color:var(--accent-dark);font-weight:700">${fmtPrice(e.price)}</td>`).join('')}</tr>
@@ -2537,7 +2556,7 @@ async function renderCompareTable() {
       container.innerHTML = `
         <div style="overflow-x:auto"><table class="compare-table">
           <tr><th></th>${items.map(e=>`<th>${e.title}</th>`).join('')}</tr>
-          <tr><td>Görsel</td>${items.map(e=>`<td><img src="images/${e.image_url||''}" onerror="this.src='https://via.placeholder.com/80x80/f0ebe4/9a9090?text=🎭'"></td>`).join('')}</tr>
+          <tr><td>Görsel</td>${items.map(e=>`<td><img src="images/${e.image_url||''}" onerror="this.src='images/placeholder.jpg'"></td>`).join('')}</tr>
           <tr><td>Tarih</td>${items.map(e=>`<td>${e.event_date?e.event_date.substring(0,10):'—'}</td>`).join('')}</tr>
           <tr><td>Konum</td>${items.map(e=>`<td>${e.location||'—'}</td>`).join('')}</tr>
           <tr><td>Fiyat</td>${items.map(e=>`<td style="color:var(--accent-dark);font-weight:700">${fmtPrice(e.price)}</td>`).join('')}</tr>
@@ -2554,7 +2573,7 @@ async function renderCompareTable() {
 async function saveComparison(type, ids) {
   if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Kaydetmek için giriş yapın.','error'); return; }
   try {
-    const r = await fetch(`${API}/karsilastirma-kaydet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,type,ids})});
+    const r = await authFetch(`${API}/karsilastirma-kaydet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,type,ids})});
     if (r.ok) { showNotif('Karşılaştırma kaydedildi! ✓'); loadComparePageHistory(); }
     else showNotif('Kaydetme başarısız.','error');
   } catch { showNotif('Sunucuya bağlanılamadı.','error'); }
@@ -2565,7 +2584,7 @@ async function loadComparePageHistory() {
   const container = $('compare-history-list');
   if (!currentUser || !section || !container) return;
   try {
-    const r = await fetch(`${API}/karsilastirma-gecmisi/${currentUser.id}`);
+    const r = await authFetch(`${API}/karsilastirma-gecmisi/${currentUser.id}`);
     const list = await r.json();
     if (!list.length) { section.style.display = 'none'; return; }
     section.style.display = 'block';
@@ -2640,7 +2659,7 @@ function updateCartUI() {
   } else {
     listEl.innerHTML = cart.map(item => `
       <div class="cart-item">
-        <img src="${item.image}" alt="${item.title}" onerror="this.src='https://via.placeholder.com/64x64/f0ebe4/9a9090?text=🖼️'">
+        <img src="${item.image}" alt="${item.title}" onerror="this.src='images/placeholder.jpg'">
         <div class="cart-item-info">
           <div class="cart-item-title">${item.title}</div>
           <div class="cart-item-sub">${item.type==='artwork'?'Sanat Eseri':'Etkinlik'}</div>
@@ -2752,7 +2771,7 @@ async function odemeOnayla() {
       };
       if (item.artworkId) body.artwork_id = item.artworkId;
       if (item.eventId)   body.event_id   = item.eventId;
-      const r = await fetch(`${API}/satin-al`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+      const r = await authFetch(`${API}/satin-al`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       const d = await r.json();
       if (r.ok) {
         lastOrderId = d.order_id;
@@ -2894,7 +2913,7 @@ async function loadEventModalReviews(eventId, siralama='yeni', onlyVerified=fals
 
 async function oyVerEtkinlik(reviewId, isHelpful) {
   if (!currentUser) { showNotif('Oy vermek için giriş yapın.','error'); return; }
-  await fetch(`${API}/yorum-oy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_id:reviewId,user_id:currentUser.id,is_helpful:isHelpful})});
+  await authFetch(`${API}/yorum-oy`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({review_id:reviewId,user_id:currentUser.id,is_helpful:isHelpful})});
   showNotif('Oyunuz kaydedildi.');
   if (currentEvent) {
     const activeBtn = document.querySelector('#event-modal-tab-reviews .review-sort-btn.active');
@@ -2909,11 +2928,11 @@ async function etkinlikYorumGonder() {
   const rating = document.querySelector('input[name="event-star"]:checked')?.value;
   const comment = $('event-review-comment').value.trim();
   if (!rating || !comment) { $('event-review-msg').innerHTML='<div class="form-msg error">Puan ve yorum zorunludur.</div>'; return; }
-  const r = await fetch(`${API}/yorum-yap`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:currentEvent.id,rating:parseInt(rating),comment})});
+  const r = await authFetch(`${API}/yorum-yap`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:currentEvent.id,rating:parseInt(rating),comment})});
   const d = await r.json();
   $('event-review-msg').innerHTML = r.ok
     ? `<div class="form-msg success">✓ ${d.mesaj}${d.dogrulanmis?' (Doğrulanmış katılımcı)':''}</div>`
-    : '<div class="form-msg error">Hata oluştu.</div>';
+    : `<div class="form-msg error">${d.detail || 'Hata oluştu.'}</div>`;
   $('event-review-comment').value='';
   document.querySelectorAll('input[name="event-star"]').forEach(s => s.checked=false);
   await loadEventModalReviews(currentEvent.id);
@@ -2955,7 +2974,7 @@ $('res-count')?.addEventListener('input', updateResTotal);
 async function rezervasyonOlustur() {
   const date = $('res-date').value, count = parseInt($('res-count').value)||1;
   if (!date) { $('res-msg').innerHTML='<div class="form-msg error">Tarih seçin.</div>'; return; }
-  const r = await fetch(`${API}/rezervasyon`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:resEventId,participant_count:count,reservation_date:date})});
+  const r = await authFetch(`${API}/rezervasyon`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:resEventId,participant_count:count,reservation_date:date})});
   const d = await r.json();
   if (r.ok) {
     $('res-msg').innerHTML=`<div class="form-msg success">✓ Rezervasyon oluşturuldu! #${d.reservation_id}</div>`;
@@ -3014,7 +3033,7 @@ async function destekGonder() {
   if (!name||!email||!msg) { $('support-feedback').innerHTML='<div class="form-msg error">Tüm alanları doldurun.</div>'; return; }
   const body = {name,email,message:msg};
   if (currentUser) body.user_id = currentUser.id;
-  const r = await fetch(`${API}/destek-mesaji`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const r = await authFetch(`${API}/destek-mesaji`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const d = await r.json();
   if (r.ok) {
     $('support-feedback').innerHTML=`<div class="form-msg success">✓ Mesajınız alındı. Talep #${d.ticket_id}</div>`;
@@ -3025,7 +3044,7 @@ async function destekGonder() {
 async function loadMyTickets() {
   if (!currentUser) return;
   $('my-tickets-section').style.display='block';
-  const r = await fetch(`${API}/destek-taleplerim/${currentUser.id}`);
+  const r = await authFetch(`${API}/destek-taleplerim/${currentUser.id}`);
   const list = await r.json();
   $('my-tickets').innerHTML = list.length ? list.map(t => `
     <div style="background:var(--white);border:1px solid var(--border);padding:14px 18px;margin-bottom:10px;border-radius:8px">
@@ -3044,7 +3063,7 @@ async function adminRaporYukle() {
   const el = document.getElementById('rapor-icerik');
   el.innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
   try {
-    const r = await fetch(API + '/admin/rapor');
+    const r = await authFetch(API + '/admin/rapor');
     const d = await r.json();
     const o = d.ozet;
 
@@ -3147,7 +3166,7 @@ async function adminTicketCevapla(ticketId) {
   if (!reply) { if (msg) msg.textContent = '⚠️ Cevap boş olamaz.'; return; }
   if (msg) msg.textContent = 'Gönderiliyor...';
   try {
-    const r = await fetch(`${API}/admin/ticket-cevapla/${ticketId}`, {
+    const r = await authFetch(`${API}/admin/ticket-cevapla/${ticketId}`, {
       method: 'PUT', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({reply})
     });
@@ -3173,7 +3192,7 @@ async function sendChat() {
   try {
     const body = { message: userMsg, name: currentUser ? currentUser.full_name : 'Ziyaretçi', email: currentUser ? currentUser.email : 'ziyaretci@ktu.edu.tr' };
     if (currentUser) body.user_id = currentUser.id;
-    const r = await fetch(`${API}/destek-mesaji`, {
+    const r = await authFetch(`${API}/destek-mesaji`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body)
