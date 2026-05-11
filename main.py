@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Header
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -7,6 +8,8 @@ from database import get_db_connection
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 import os, uuid, shutil, bcrypt
+
+app = FastAPI()
 
 SECRET_KEY = os.getenv("JWT_SECRET")
 if not SECRET_KEY:
@@ -49,6 +52,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
 )
+
+app.mount("/images", StaticFiles(directory="images"), name="images")
 
 # ─── MODELLER ───────────────────────────────────────────────
 class Review(BaseModel):
