@@ -901,6 +901,7 @@
         <div class="modal-title" id="modal-title"></div>
         <div class="modal-meta" id="modal-meta"></div>
         <div class="modal-price" id="modal-price"></div>
+        <div id="modal-stok-badge" style="display:none;background:#f8f0f0;border:1px solid #e0c0c0;color:#a44;padding:10px 14px;font-size:13px;margin-bottom:12px;letter-spacing:.5px">⛔ Bu eser şu an stokta bulunmamaktadır. Detayları inceleyebilirsiniz.</div>
         <div class="modal-desc" id="modal-desc"></div>
         <div class="modal-actions">
           <button class="btn-dark" id="modal-buy-btn" onclick="modalSepeteEkle()">🛒 Sepete Ekle</button>
@@ -2142,13 +2143,11 @@ function eserCard(eser, idx, isFav=false) {
   const sepetBtn = stokVar
     ? `<button class="add-cart-btn" onclick="event.stopPropagation();addArtworkToCart(${eser.id},'${eser.title.replace(/'/g,"\\'")}',${finalPrice},'images/${eser.image_url}')">🛒 Sepete Ekle</button>`
     : `<button class="add-cart-btn" disabled style="background:#bbb;cursor:not-allowed">Stokta Yok</button>`;
-  const overlayBtn = stokVar
-    ? `<button onclick="event.stopPropagation();openModal(${eser.id})">Detayları Gör</button>`
-    : `<button onclick="event.stopPropagation();openModal(${eser.id})" style="background:#999">Stokta Yok</button>`;
+  const overlayBtn = `<button onclick="event.stopPropagation();openModal(${eser.id})">${stokVar ? 'Detayları Gör' : 'Detayları Gör'}</button>`;
   // ───────────────────────────────────────────────
 
   return `
-    <div class="product-card" style="animation-delay:${idx*.06}s" onclick="openModal(${eser.id})">
+    <div class="product-card" style="animation-delay:${idx*.06}s;${stokVar ? '' : 'opacity:.85'}" onclick="openModal(${eser.id})">
       <input type="checkbox" class="compare-check" title="Karşılaştırmaya ekle" ${inCompare?'checked':''} onclick="event.stopPropagation();toggleCompare(${eser.id})" ${compareList.length>=3&&!inCompare?'disabled':''}>
       <div class="product-img-wrap">
         <img src="${img}" alt="${eser.title}" onerror="this.src='images/placeholder.jpg'">
@@ -2329,6 +2328,24 @@ async function openModal(id) {
   const final = disc ? Number(eser.price)*(1-eser.discount_percent/100) : Number(eser.price);
   $('modal-price').innerHTML = disc ? `<s style="font-size:18px;color:var(--text-muted)">${fmtPrice(eser.price)}</s> ${fmtPrice(final)}` : fmtPrice(final);
   $('modal-desc').textContent = eser.description||'';
+  // Stok durumuna göre sepet butonunu ayarla
+  const modalBuyBtn = $('modal-buy-btn');
+  const modalStokBadge = document.getElementById('modal-stok-badge');
+  if (eser.stock > 0) {
+    modalBuyBtn.disabled = false;
+    modalBuyBtn.style.background = '';
+    modalBuyBtn.style.cursor = '';
+    modalBuyBtn.style.opacity = '';
+    modalBuyBtn.innerHTML = '🛒 Sepete Ekle';
+    if (modalStokBadge) modalStokBadge.style.display = 'none';
+  } else {
+    modalBuyBtn.disabled = true;
+    modalBuyBtn.style.background = '#ccc';
+    modalBuyBtn.style.cursor = 'not-allowed';
+    modalBuyBtn.style.opacity = '0.7';
+    modalBuyBtn.innerHTML = '🚫 Stokta Yok';
+    if (modalStokBadge) modalStokBadge.style.display = 'block';
+  }
   $('modal-bg').classList.add('open');
   // reviews
   await loadModalReviews(id);
@@ -2629,6 +2646,14 @@ let selectedPayMethod = 'kredi_karti';
 
 function addArtworkToCart(artworkId, title, price, image) {
   if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Sepete eklemek için giriş yapın.','error'); return; }
+  
+  // EKLENEN KISIM: Stok kontrolü
+  const eser = allEserler.find(e => e.id === artworkId);
+  if (eser && eser.stock <= 0) {
+    showNotif('Bu eser stokta bulunmamaktadır.', 'error');
+    return;
+  }
+  
   if (cart.find(c => c.type==='artwork' && c.artworkId===artworkId)) { showNotif('Bu eser zaten sepetinizde.','error'); return; }
   cart.push({id: Date.now(), type:'artwork', title, price, image, artworkId, eventId:null});
   updateCartUI(); showNotif(`"${title}" sepete eklendi! 🛒`); toggleCart();
@@ -2952,6 +2977,13 @@ function openResModalFromEvent() {
 // Eski modalSatinAl yerine
 function modalSepeteEkle() {
   if (!currentEser) return;
+  
+  // EKLENEN KISIM: Stok kontrolü
+  if (currentEser.stock <= 0) {
+    showNotif('Bu eser stokta bulunmamaktadır.', 'error');
+    return;
+  }
+  
   const disc = currentEser.discount_percent > 0;
   const price = disc ? Number(currentEser.price)*(1-currentEser.discount_percent/100) : Number(currentEser.price);
   addArtworkToCart(currentEser.id, currentEser.title, price, `images/${currentEser.image_url}`);
