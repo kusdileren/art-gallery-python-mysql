@@ -399,7 +399,7 @@
     <li><a href="#" id="nav-gallery" onclick="showPage('gallery');return false">Sergi Salonu</a></li>
     <li><a href="#" id="nav-events" onclick="showPage('events');return false">Etkinlikler</a></li>
     <li><a href="#" id="nav-compare" onclick="showPage('compare');return false">Karşılaştır</a></li>
-    <li id="nav-stats-li" style="display:none"><a href="#" id="nav-stats" onclick="showPage('stats');return false">İstatistikler</a></li>
+
     <li><a href="#" id="nav-support" onclick="showPage('support');return false">Destek</a></li>
     <li><a href="#" id="nav-auth" onclick="goAccount();return false">Hesabım</a></li>
   </ul>
@@ -550,29 +550,7 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════ STATS PAGE (Madde 16) -->
-<div id="page-stats" class="page">
-  <div class="section">
-    <div class="section-title">İstatistikler <span>Raporlama</span></div>
-    <div class="section-subtitle">Eser ve etkinlik bazında özet istatistikler</div>
-    <div class="stat-cards" id="stat-summary">
-      <div class="loading" style="grid-column:1/-1"><div class="spinner"></div>Yükleniyor...</div>
-    </div>
-    <div class="section-title" style="font-size:20px;margin-bottom:20px">Eser Bazında <span>Detay</span></div>
-    <div style="overflow-x:auto">
-      <table class="stat-table" id="stats-artworks-table">
-        <tr><th>Eser</th><th>Sanatçı</th><th>Fiyat</th><th>Görüntülenme</th><th>Favori</th><th>Yorum</th><th>Ort. Puan</th><th>Satış</th></tr>
-      </table>
-    </div>
-    <hr class="divider">
-    <div class="section-title" style="font-size:20px;margin:20px 0">Etkinlik Bazında <span>Detay</span></div>
-    <div style="overflow-x:auto">
-      <table class="stat-table" id="stats-events-table">
-        <tr><th>Etkinlik</th><th>Tarih</th><th>Kapasite</th><th>Rezervasyon</th><th>Doluluk</th><th>Ort. Puan</th></tr>
-      </table>
-    </div>
-  </div>
-</div>
+
 
 <!-- ══════════════════════════════════════════ SUPPORT PAGE (Madde 10) -->
 <div id="page-support" class="page">
@@ -686,8 +664,7 @@
     <div class="account-layout">
       <!-- Sol menü -->
       <div class="account-menu">
-        <div class="account-menu-item active" onclick="showAdminPanel('dashboard')">📊 Genel Bakış</div>
-        <div class="account-menu-item" onclick="showAdminPanel('rapor'); adminRaporYukle()">📈 Özet Rapor</div>
+        <div class="account-menu-item active" onclick="showAdminPanel('istatistik'); adminIstatistikYukle()">📊 İstatistik & Rapor</div>
         <div class="account-menu-item" onclick="showAdminPanel('featured-mgmt')">⭐ Öne Çıkan Eserler</div>
         <div class="account-menu-item" onclick="showAdminPanel('artworks')">🖼️ Eser Yönetimi</div>
         <div class="account-menu-item" onclick="showAdminPanel('events-mgmt')">🎨 Etkinlik Yönetimi</div>
@@ -700,21 +677,10 @@
       <!-- Sağ içerik -->
       <div style="flex:1;min-width:0">
 
-        <!-- Dashboard -->
-        <div class="account-panel active" id="admin-panel-dashboard">
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px" id="admin-kpi-grid">
-            <div class="loading"><div class="spinner"></div>Yükleniyor...</div>
-          </div>
-          <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">En Çok Satan Eserler</div>
-          <div id="admin-top-artworks"></div>
-          <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin:20px 0 12px">Etkinlik Doluluk Oranları</div>
-          <div id="admin-event-fill"></div>
-        </div>
-
-        <!-- Özet Rapor -->
-        <div class="account-panel" id="admin-panel-rapor">
-          <div style="font-weight:700;font-size:17px;margin-bottom:20px">📈 Özet Rapor</div>
-          <div id="rapor-icerik"><div class="loading"><div class="spinner"></div>Rapor yükleniyor...</div></div>
+        <!-- İstatistik & Rapor (Birleşik) -->
+        <div class="account-panel active" id="admin-panel-istatistik">
+          <div style="font-weight:700;font-size:19px;margin-bottom:20px;font-family:'Playfair Display',serif">📊 İstatistik <span style="color:var(--accent);font-style:italic">& Rapor</span></div>
+          <div id="admin-istatistik-icerik"><div class="loading"><div class="spinner"></div>Yükleniyor...</div></div>
         </div>
 
         <!-- Eser Yönetimi -->
@@ -916,6 +882,7 @@
         <div class="modal-tab-content active" id="modal-tab-reviews"></div>
         <div class="modal-tab-content" id="modal-tab-writeReview">
           <div id="review-auth-warning" style="display:none" class="form-msg error">Yorum yapabilmek için giriş yapmalısınız.</div>
+          <div id="review-purchase-warning" style="display:none" class="form-msg error">⚠️ Bu esere yorum yapabilmek için önce satın almış olmanız gerekiyor.</div>
           <div id="review-form-inner">
             <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Puanınız:</p>
             <div class="star-input">
@@ -1119,28 +1086,13 @@
       <div class="checkout-step" id="checkout-step-4">
         <div style="text-align:center;padding:10px 0 20px">
           <div class="order-success-icon">✓</div>
-          <h3 style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:8px">Siparişiniz Alındı!</h3>
-          <p style="font-size:14px;color:var(--text-muted)">Sipariş No: <strong id="co-order-id" style="color:var(--accent-dark)">#</strong></p>
+          <h3 id="co-success-title" style="font-family:'Playfair Display',serif;font-size:24px;margin-bottom:8px">Ödeme Tamamlandı!</h3>
+          <p style="font-size:14px;color:var(--text-muted)" id="co-success-subtitle">Sipariş No: <strong id="co-order-id" style="color:var(--accent-dark)">#</strong></p>
         </div>
-        <div class="order-steps">
-          <div class="order-step-row">
-            <div class="order-step-num" style="background:var(--green)">✓</div>
-            <div class="order-step-text"><b>Sipariş Alındı</b>Siparişiniz sistemimize kaydedildi.</div>
-          </div>
-          <div class="order-step-row">
-            <div class="order-step-num" style="background:var(--accent)">2</div>
-            <div class="order-step-text"><b>Ödeme Onayı</b>Ödemeniz kontrol ediliyor.</div>
-          </div>
-          <div class="order-step-row" id="co-step-kargo">
-            <div class="order-step-num" style="background:var(--border);color:var(--text-muted)">3</div>
-            <div class="order-step-text"><b>Kargoya Verilecek</b>Sipariş hazırlanıp kargoya teslim edilecek.</div>
-          </div>
-          <div class="order-step-row" id="co-step-teslim">
-            <div class="order-step-num" style="background:var(--border);color:var(--text-muted)">4</div>
-            <div class="order-step-text"><b>Teslimat</b>Siparişiniz adresinize teslim edilecek.</div>
-          </div>
+        <div class="order-steps" id="co-success-steps">
+          <!-- JS tarafından doldurulur: eser veya etkinlik -->
         </div>
-        <button class="form-submit" style="margin-top:20px" onclick="closeCheckoutModal();showPage('account');showAccountPanel('orders')">Siparişlerimi Görüntüle</button>
+        <button class="form-submit" style="margin-top:20px" id="co-success-btn" onclick="closeCheckoutModal();showPage('account');showAccountPanel('orders')">Siparişlerimi Görüntüle</button>
       </div>
     </div>
   </div>
@@ -1159,7 +1111,6 @@
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="event-price" id="event-modal-price" style="font-size:22px;flex:1"></div>
         <button class="btn-outline" id="event-modal-compare-btn" onclick="modalEventCompareToggle()">⚖ Karşılaştır</button>
-        <button class="btn-outline" onclick="addEventToCart(currentEvent)">🛒 Sepete Ekle</button>
         <button class="btn-dark" onclick="openResModalFromEvent()">📅 Rezervasyon Yap</button>
       </div>
       <div id="event-modal-capacity-bar" style="margin-top:16px">
@@ -1178,6 +1129,7 @@
         <div class="modal-tab-content active" id="event-modal-tab-reviews"></div>
         <div class="modal-tab-content" id="event-modal-tab-writeReview">
           <div id="event-review-auth-warning" style="display:none" class="form-msg error">Yorum yapabilmek için giriş yapmalısınız.</div>
+          <div id="event-review-reservation-warning" style="display:none" class="form-msg error">⚠️ Bu etkinliğe yorum yapabilmek için önce rezervasyon yapmış olmanız gerekiyor.</div>
           <div id="event-review-form-inner">
             <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Puanınız:</p>
             <div class="star-input">
@@ -1240,7 +1192,7 @@
         <li><a onclick="showPage('home')">Ana Sayfa</a></li>
         <li><a onclick="showPage('gallery')">Sergi Salonu</a></li>
         <li><a onclick="showPage('events')">Etkinlikler</a></li>
-        <li id="footer-stats-li" style="display:none"><a onclick="showPage('stats')">İstatistikler</a></li>
+
       </ul>
     </div>
     <div class="footer-col">
@@ -1325,7 +1277,7 @@ function showNotif(text, type='') {
 }
 
 // ── SAYFA YÖNETİMİ ───────────────────────────────────────────
-const PAGES = ['home','gallery','events','compare','stats','support','auth','account','admin'];
+const PAGES = ['home','gallery','events','compare','support','auth','account','admin'];
 function showPage(page) {
   PAGES.forEach(p => {
     const el = $('page-'+p); if (el) el.classList.remove('active');
@@ -1336,17 +1288,13 @@ function showPage(page) {
   window.scrollTo(0,0);
   if (page === 'gallery' && !allEserler.length) loadEserler();
   if (page === 'events' && !allEvents.length) loadEvents();
-  if (page === 'stats') {
-    if (!currentUser || currentUser.role !== 'admin') { showPage('auth'); setAuthTab('login'); showNotif('Bu sayfa yalnızca adminlere özeldir.'); return; }
-    loadStats();
-  }
   if (page === 'account' && currentUser) loadAccountData();
   if (page === 'compare') { renderCompareTable(); loadComparePageHistory(); }
-  if (page === 'admin' && currentUser?.role === 'admin') loadAdminDashboard();
+  if (page === 'admin' && currentUser?.role === 'admin') { adminIstatistikYukle(); }
 }
 function goAccount() {
   if (!currentUser) { showPage('auth'); setAuthTab('login'); }
-  else if (currentUser.role === 'admin') { showPage('admin'); loadAdminDashboard(); }
+  else if (currentUser.role === 'admin') { showPage('admin'); adminIstatistikYukle(); }
   else showPage('account');
 }
 
@@ -1371,6 +1319,9 @@ async function girisYap() {
   const email=$('login-email').value.trim(), pass=$('login-pass').value;
   const msg=$('login-msg');
   if (!email||!pass) { msg.innerHTML='<div class="form-msg error">E-posta ve şifre giriniz.</div>'; return; }
+  // Önceki oturumu temizle — giriş formu submit edilince yeniden doğrulama yapılır
+  currentUser = null; saveSession(); setLoggedIn(false);
+  msg.innerHTML='<div class="form-msg" style="color:var(--text-muted)">Bağlanılıyor...</div>';
   try {
     const r = await fetch(`${API}/giris`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
     if (r.ok) {
@@ -1380,11 +1331,11 @@ async function girisYap() {
       setLoggedIn(true);
       msg.innerHTML='<div class="form-msg success">✓ Giriş başarılı!</div>';
       setTimeout(() => {
-        if (currentUser.role === 'admin') { showPage('admin'); }
+        if (currentUser.role === 'admin') { showPage('admin'); adminIstatistikYukle(); }
         else { showPage('account'); }
       }, 800);
     } else { const d=await r.json(); msg.innerHTML=`<div class="form-msg error">${d.detail||'Hatalı giriş.'}</div>`; }
-  } catch { msg.innerHTML='<div class="form-msg error">Sunucuya bağlanılamadı.</div>'; }
+  } catch { msg.innerHTML='<div class="form-msg error">Sunucuya bağlanılamadı. Backend çalışıyor mu?</div>'; }
 }
 function logout() {
   currentUser = null; saveSession(); setLoggedIn(false); $('login-pass').value = ''; showPage('home'); showNotif('Çıkış yapıldı.');
@@ -1408,43 +1359,157 @@ function showAdminPanel(name) {
   if (name === 'featured-mgmt')loadAdminFeatured();
 }
 
-async function loadAdminDashboard() {
-  $('admin-kpi-grid').innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+async function adminIstatistikYukle() {
+  const el = $('admin-istatistik-icerik');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
   try {
-    const r = await fetch(`${API}/istatistik`);
-    const d = await r.json();
-    const totalSatis = d.eserler.reduce((s,e)=>s+e.sale_count,0);
-    const totalYorum = d.eserler.reduce((s,e)=>s+e.review_count,0);
-    const kpis = [
-      {label:'Toplam Kullanıcı', val: d.toplam_kullanici, icon:'👤'},
-      {label:'Toplam Ciro',      val: fmtPrice(d.toplam_ciro), icon:'💰'},
-      {label:'Eser Satışı',      val: totalSatis, icon:'🖼️'},
-      {label:'Toplam Yorum',     val: totalYorum, icon:'💬'},
+    // Her iki endpoint'i paralel çek
+    const [rIst, rRapor] = await Promise.all([
+      fetch(`${API}/istatistik`),
+      authFetch(`${API}/admin/rapor`)
+    ]);
+    const ist = await rIst.json();
+    const rap = await rRapor.json();
+    const o = rap.ozet;
+
+    function para(n) { return '₺' + Number(n).toLocaleString('tr-TR', {maximumFractionDigits:0}); }
+
+    // ── KPI Kartları (rapor + istatistik birleşik) ──
+    const kpiler = [
+      ['👥 Kullanıcı',       o.toplam_kullanici],
+      ['🖼️ Eser',            o.toplam_eser],
+      ['🎭 Etkinlik',        o.toplam_etkinlik],
+      ['📦 Sipariş',         o.toplam_siparis],
+      ['🎟️ Rezervasyon',     o.toplam_rezervasyon],
+      ['💰 Toplam Ciro',     para(o.toplam_ciro)],
+      ['🎧 Açık Destek',     o.acik_talepler],
+      ['💬 Toplam Yorum',    o.toplam_yorum],
     ];
-    $('admin-kpi-grid').innerHTML = kpis.map(k=>`
-      <div style="background:var(--cream-light);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center">
-        <div style="font-size:28px">${k.icon}</div>
-        <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;color:var(--accent-dark);margin:6px 0">${k.val}</div>
-        <div style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted)">${k.label}</div>
-      </div>`).join('');
-    $('admin-top-artworks').innerHTML = d.eserler.slice(0,5).map(a=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-light);font-size:14px">
-        <span>${a.title}</span>
-        <span style="display:flex;gap:16px;color:var(--text-muted)">
-          <span>👁 ${a.view_count}</span><span>❤️ ${a.favorite_count}</span><span>🛒 ${a.sale_count}</span>
-        </span>
-      </div>`).join('');
-    $('admin-event-fill').innerHTML = d.etkinlikler.slice(0,6).map(e=>{
-      const pct = e.capacity>0 ? Math.min(100, Math.round((e.total_participants/e.capacity)*100)) : 0;
-      return `<div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
-          <span>${e.title}</span><span style="color:var(--text-muted)">${pct}%</span>
-        </div>
-        <div style="background:var(--border);border-radius:4px;height:8px">
-          <div style="background:var(--accent);height:8px;border-radius:4px;width:${pct}%"></div>
-        </div>
-      </div>`;}).join('');
-  } catch { $('admin-kpi-grid').innerHTML = '<p style="color:red">Veri yüklenemedi.</p>'; }
+    const kpiHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:32px">
+        ${kpiler.map(([k,v]) => `
+          <div class="stat-card">
+            <div class="stat-num" style="font-size:24px">${v}</div>
+            <div class="stat-label">${k}</div>
+          </div>`).join('')}
+      </div>`;
+
+    // ── Aylık Ciro Grafiği ──
+    const maxCiro = Math.max(...rap.aylik_ciro.map(r=>r.ciro), 1);
+    const ciroHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">📈 Aylık Ciro (Son 6 Ay)</div>
+      <div style="background:var(--white);border:1px solid var(--border);padding:16px;margin-bottom:28px">
+        ${rap.aylik_ciro.length === 0
+          ? '<p style="color:var(--text-muted);font-size:13px">Henüz ciro verisi yok</p>'
+          : rap.aylik_ciro.map(r => `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <span style="font-size:12px;color:var(--text-muted);width:65px;flex-shrink:0">${r.ay}</span>
+              <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+                <div style="width:${(r.ciro/maxCiro*100).toFixed(1)}%;height:100%;background:var(--accent);border-radius:4px"></div>
+              </div>
+              <span style="font-size:12px;color:var(--accent-dark);font-weight:700;width:90px;text-align:right">${para(r.ciro)}</span>
+            </div>`).join('')}
+      </div>`;
+
+    // ── Eser Bazında Detay ──
+    const eserDetayHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🖼️ Eser Bazında Detay</div>
+      <div style="overflow-x:auto;margin-bottom:28px">
+        <table class="stat-table">
+          <thead><tr><th>Eser</th><th>Sanatçı</th><th>Fiyat</th><th>Görüntülenme</th><th>Favori</th><th>Yorum</th><th>Ort. Puan</th><th>Satış</th></tr></thead>
+          <tbody>${ist.eserler.map(e => `<tr>
+            <td><b>${e.title}</b></td>
+            <td>${e.artist_name||'—'}</td>
+            <td>${para(e.price)}</td>
+            <td>${e.view_count||0}</td>
+            <td>${e.favorite_count||0}</td>
+            <td>${e.review_count||0}</td>
+            <td style="color:var(--accent)">${Number(e.avg_rating).toFixed(1)} ${stars(e.avg_rating)}</td>
+            <td><b>${e.sale_count||0}</b></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+
+    // ── Etkinlik Bazında Detay ──
+    const etkinlikDetayHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🎭 Etkinlik Bazında Detay</div>
+      <div style="overflow-x:auto;margin-bottom:28px">
+        <table class="stat-table">
+          <thead><tr><th>Etkinlik</th><th>Tarih</th><th>Kapasite</th><th>Rezervasyon</th><th>Doluluk</th><th>Ort. Puan</th></tr></thead>
+          <tbody>${ist.etkinlikler.map(e => {
+            const pct = e.capacity > 0 ? Math.round((e.total_participants||0)/e.capacity*100) : 0;
+            const barColor = pct >= 80 ? 'var(--red)' : pct >= 50 ? 'var(--accent)' : 'var(--green)';
+            return `<tr>
+              <td><b>${e.title}</b></td>
+              <td>${fmtDate(e.event_date)}</td>
+              <td>${e.capacity}</td>
+              <td>${e.total_participants||0}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:80px;height:8px;background:var(--border);border-radius:4px;overflow:hidden;display:inline-block">
+                    <div style="width:${pct}%;height:100%;background:${barColor};border-radius:4px"></div>
+                  </div>
+                  <span style="font-size:12px;font-weight:700;color:${barColor}">%${pct}</span>
+                </div>
+              </td>
+              <td style="color:var(--accent)">${Number(e.avg_rating).toFixed(1)} ${stars(e.avg_rating)}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>`;
+
+    // ── En Çok Satan 5 Eser ──
+    const satisHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🏆 En Çok Satan Eserler</div>
+      <table class="stat-table" style="margin-bottom:28px">
+        <thead><tr><th>#</th><th>Eser</th><th>Sanatçı</th><th>Satış</th><th>Toplam Gelir</th></tr></thead>
+        <tbody>${rap.en_cok_satan.map((r,i) => `<tr>
+          <td>${i+1}</td><td>${r.title}</td><td>${r.artist_name||'—'}</td>
+          <td><span class="status-badge onaylandi">${r.satis_adedi} adet</span></td>
+          <td style="color:var(--accent-dark);font-weight:700">${para(r.toplam_gelir)}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    // ── En Popüler 5 Etkinlik ──
+    const populerEtkinlikHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🎭 En Popüler Etkinlikler</div>
+      <table class="stat-table" style="margin-bottom:28px">
+        <thead><tr><th>#</th><th>Etkinlik</th><th>Tür</th><th>Rezervasyon</th><th>Katılımcı</th></tr></thead>
+        <tbody>${rap.en_populer_etkinlik.map((r,i) => `<tr>
+          <td>${i+1}</td><td>${r.title}</td>
+          <td><span class="status-badge beklemede">${r.event_type}</span></td>
+          <td>${r.rezervasyon_sayisi}</td><td>${r.toplam_katilimci}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    // ── Kategori Bazlı Satış ──
+    const kategoriHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🗂️ Kategori Bazlı Satış</div>
+      <table class="stat-table" style="margin-bottom:28px">
+        <thead><tr><th>Kategori</th><th>Satış Adedi</th><th>Toplam Gelir</th></tr></thead>
+        <tbody>${rap.kategori_satis.map(r => `<tr>
+          <td>${r.kategori}</td><td>${r.satis_adedi}</td>
+          <td style="color:var(--accent-dark);font-weight:700">${para(r.toplam_gelir)}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    // ── Son Siparişler ──
+    const siparisHTML = `
+      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🕐 Son Siparişler</div>
+      <table class="stat-table" style="margin-bottom:16px">
+        <thead><tr><th>#</th><th>Müşteri</th><th>Ürün</th><th>Tutar</th><th>Durum</th></tr></thead>
+        <tbody>${rap.son_siparisler.map(r => `<tr>
+          <td>${r.id}</td><td>${r.musteri||'—'}</td><td>${r.urun||'—'}</td>
+          <td style="color:var(--accent-dark);font-weight:700">${para(r.amount)}</td>
+          <td><span class="status-badge ${r.status==='onaylandı'?'onaylandi':r.status==='iptal'?'iptal':'beklemede'}">${r.status}</span></td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+
+    el.innerHTML = kpiHTML + ciroHTML + eserDetayHTML + etkinlikDetayHTML + satisHTML + populerEtkinlikHTML + kategoriHTML + siparisHTML;
+
+  } catch(e) {
+    el.innerHTML = `<div class="form-msg error">İstatistikler yüklenemedi: ${e.message}</div>`;
+  }
 }
 
 // ─── ADMIN CRUD HELPERS ──────────────────────────────────────────────
@@ -1520,7 +1585,7 @@ async function loadAdminEvents() {
       <td style="padding:8px"><b>${e.title}</b></td>
       <td style="padding:8px;color:var(--text-muted)">${new Date(e.event_date).toLocaleDateString('tr-TR')}</td>
       <td style="padding:8px">${e.capacity}</td>
-      <td style="padding:8px">${e.reserved_count}</td>
+      <td style="padding:8px">${e.total_participants}</td>
       <td style="padding:8px">
         <button onclick="adminEtkinlikDuzenle(${e.id},'${e.title.replace(/'/g,"\\'")}',${e.capacity},${e.price})"
           style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--cream-light);margin-right:4px">✏️ Düzenle</button>
@@ -1966,11 +2031,13 @@ function setLoggedIn(on) {
   if (on && currentUser) {
     $('user-name-display').textContent = currentUser.full_name;
     const isAdmin = currentUser.role === 'admin';
-    $('nav-stats-li').style.display = isAdmin ? 'block' : 'none';
-    $('footer-stats-li').style.display = isAdmin ? 'block' : 'none';
+    // Elementler varsa işlem yap, yoksa hata verme
+    if ($('nav-stats-li')) $('nav-stats-li').style.display = isAdmin ? 'block' : 'none';
+    if ($('footer-stats-li')) $('footer-stats-li').style.display = isAdmin ? 'block' : 'none';
   } else {
-    $('nav-stats-li').style.display = 'none';
-    $('footer-stats-li').style.display = 'none';
+    // Elementler varsa gizle
+    if ($('nav-stats-li')) $('nav-stats-li').style.display = 'none';
+    if ($('footer-stats-li')) $('footer-stats-li').style.display = 'none';
   }
 }
 
@@ -2281,7 +2348,8 @@ function renderEvents(list, gridId) {
 function eventCard(ev, idx) {
   const capacity = ev.capacity||1;
   const reserved = ev.reserved_count||0;
-  const pct = Math.min(100, Math.round(reserved/capacity*100));
+  const totalParticipants = ev.total_participants||0;
+  const pct = Math.min(100, Math.round(totalParticipants/capacity*100));
   const types = {atolye:'Atölye',sergi:'Sergi',konferans:'Konferans',tur:'Tur'};
   return `
     <div class="event-card" style="animation-delay:${idx*.08}s;cursor:pointer" onclick="openEventModal(${ev.id})">
@@ -2295,16 +2363,13 @@ function eventCard(ev, idx) {
           <b>Tarih:</b> ${fmtDate(ev.event_date)}<br>
           <b>Konum:</b> ${ev.location||'—'}<br>
           <b>Süre:</b> ${ev.duration_minutes} dakika<br>
-          <b>Kontenjan:</b> ${reserved}/${capacity} kişi
+          <b>Kontenjan:</b> ${totalParticipants}/${capacity} kişi
           <div class="capacity-bar"><div class="capacity-fill" style="width:${pct}%"></div></div>
         </div>
       </div>
       <div class="event-footer">
         <div class="event-price">${ev.price>0 ? fmtPrice(ev.price) : 'Ücretsiz'}</div>
-        <div style="display:flex;gap:6px">
-          <button class="btn-outline" style="padding:7px 10px;font-size:12px" onclick="event.stopPropagation();addEventToCartById(${ev.id})" title="Sepete Ekle">🛒</button>
-          <button class="btn-dark" onclick="event.stopPropagation();openResModal(${ev.id}, ${JSON.stringify(ev.title)}, ${ev.price})">Rezervasyon</button>
-        </div>
+        <button class="btn-dark" onclick="event.stopPropagation();openResModal(${ev.id}, ${JSON.stringify(ev.title)}, ${ev.price})">Rezervasyon</button>
       </div>
     </div>`;
 }
@@ -2317,8 +2382,19 @@ function filterEvents(type, btn) {
 
 // ── MODAL ─────────────────────────────────────────────────────
 async function openModal(id) {
-  const eser = allEserler.find(e => e.id===id);
+  let eser = allEserler.find(e => e.id===id);
   if (!eser) return;
+  // Backend'e istek at: view_count artar ve güncel veri gelir
+  try {
+    const r = await fetch(`${API}/eserler/${id}`);
+    if (r.ok) {
+      const fresh = await r.json();
+      // allEserler dizisindeki kaydı güncelle
+      const idx = allEserler.findIndex(e => e.id===id);
+      if (idx !== -1) { allEserler[idx] = {...allEserler[idx], ...fresh}; }
+      eser = allEserler[idx] || eser;
+    }
+  } catch {}
   currentEser = eser;
   $('modal-img').src = `images/${eser.image_url}`;
   $('modal-artist').textContent = eser.artist_name||'Bilinmeyen Sanatçı';
@@ -2351,8 +2427,28 @@ async function openModal(id) {
   await loadModalReviews(id);
   await loadModalStats(id);
   // auth check for review form
-  if (!currentUser) { $('review-auth-warning').style.display='block'; $('review-form-inner').style.display='none'; }
-  else { $('review-auth-warning').style.display='none'; $('review-form-inner').style.display='block'; }
+  if (!currentUser) { 
+    $('review-auth-warning').style.display='block'; 
+    $('review-purchase-warning').style.display='none';
+    $('review-form-inner').style.display='none'; 
+  } else { 
+    $('review-auth-warning').style.display='none'; 
+    // Check if user has purchased
+    try {
+      const pr = await authFetch(`${API}/satin-alim-kontrol/${currentUser.id}/${id}`);
+      const pd = await pr.json();
+      if (pd.satin_aldi) {
+        $('review-purchase-warning').style.display='none';
+        $('review-form-inner').style.display='block';
+      } else {
+        $('review-purchase-warning').style.display='block';
+        $('review-form-inner').style.display='none';
+      }
+    } catch {
+      $('review-purchase-warning').style.display='none';
+      $('review-form-inner').style.display='block';
+    }
+  }
 }
 function closeModal(e) {
   if (!e || e.target===$('modal-bg') || (e.target&&e.target.classList.contains('modal-close'))) {
@@ -2800,7 +2896,7 @@ async function odemeOnayla() {
         coupon_code: couponCode
       };
       if (item.artworkId) body.artwork_id = item.artworkId;
-      if (item.eventId)   body.event_id   = item.eventId;
+      if (item.eventId) { body.event_id = item.eventId; body.participant_count = item.participantCount || 1; }
       const r = await authFetch(`${API}/satin-al`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       const d = await r.json();
       if (r.ok) {
@@ -2824,29 +2920,66 @@ async function odemeOnayla() {
       return;
     }
 
-    // Show kargo step differently for kapida_odeme
-    const kargoRow = $('co-step-kargo');
-    const teslimRow = $('co-step-teslim');
-    if (kargoRow) {
-      const kargoNum  = kargoRow.querySelector('.order-step-num');
-      const kargoText = kargoRow.querySelector('.order-step-text');
-      const kargoB    = kargoText ? kargoText.querySelector('b') : null;
-      if (selectedPayMethod === 'kapida_odeme') {
-        if (kargoNum)  kargoNum.style.background = 'var(--accent)';
-        if (kargoB)    kargoB.textContent = 'Kargoya Verilecek';
-        if (kargoText) { const last = kargoText.lastChild; if (last && last.nodeType===3) last.textContent='Siparişiniz kargoya verildiğinde kapıda ödeme yapacaksınız.'; }
-      } else if (selectedPayMethod === 'banka_havalesi') {
-        if (kargoB) kargoB.textContent = 'Havale Bekleniyor';
-        if (kargoText) { const last = kargoText.lastChild; if (last && last.nodeType===3) last.textContent='Havalenz onaylandıktan sonra kargoya verilecektir.'; }
-      }
+    // Sepetteki tüm ürünler etkinlik mi? (rezervasyon akışından gelen ödeme)
+    const isAllEvents = cart.every(c => c.type === 'event');
+    const stepsEl = $('co-success-steps');
+    const titleEl = $('co-success-title');
+    const subtitleEl = $('co-success-subtitle');
+    const successBtn = $('co-success-btn');
+
+    if (isAllEvents) {
+      // Etkinlik ödeme sonrası ekranı
+      titleEl.textContent = 'Rezervasyon Tamamlandı!';
+      subtitleEl.innerHTML = 'Ödeme No: <strong id="co-order-id" style="color:var(--accent-dark)">#</strong>';
+      if (successBtn) { successBtn.textContent = 'Rezervasyonlarımı Görüntüle'; successBtn.onclick = () => { closeCheckoutModal(); showPage('account'); showAccountPanel('reservations'); }; }
+      stepsEl.innerHTML = `
+        <div class="order-step-row">
+          <div class="order-step-num" style="background:var(--green)">✓</div>
+          <div class="order-step-text"><b>Rezervasyon Alındı</b>Rezervasyonunuz sistemimize kaydedildi.</div>
+        </div>
+        <div class="order-step-row">
+          <div class="order-step-num" style="background:var(--green)">✓</div>
+          <div class="order-step-text"><b>Ödeme Onaylandı</b>Ödemeniz başarıyla alındı.</div>
+        </div>
+        <div class="order-step-row">
+          <div class="order-step-num" style="background:var(--accent)">3</div>
+          <div class="order-step-text"><b>Etkinlik Günü</b>Etkinlik tarihinde belirtilen konuma gelin.</div>
+        </div>`;
+    } else {
+      // Eser alım ekranı
+      titleEl.textContent = 'Siparişiniz Alındı!';
+      subtitleEl.innerHTML = 'Sipariş No: <strong id="co-order-id" style="color:var(--accent-dark)">#</strong>';
+      if (successBtn) { successBtn.textContent = 'Siparişlerimi Görüntüle'; successBtn.onclick = () => { closeCheckoutModal(); showPage('account'); showAccountPanel('orders'); }; }
+      let kargoText = 'Sipariş hazırlanıp kargoya teslim edilecek.';
+      let kargoLabel = 'Kargoya Verilecek';
+      if (selectedPayMethod === 'kapida_odeme') { kargoLabel = 'Kargoya Verilecek'; kargoText = 'Siparişiniz kargoya verildiğinde kapıda ödeme yapacaksınız.'; }
+      else if (selectedPayMethod === 'banka_havalesi') { kargoLabel = 'Havale Bekleniyor'; kargoText = 'Havale onaylandıktan sonra kargoya verilecektir.'; }
+      stepsEl.innerHTML = `
+        <div class="order-step-row">
+          <div class="order-step-num" style="background:var(--green)">✓</div>
+          <div class="order-step-text"><b>Sipariş Alındı</b>Siparişiniz sistemimize kaydedildi.</div>
+        </div>
+        <div class="order-step-row">
+          <div class="order-step-num" style="background:var(--accent)">2</div>
+          <div class="order-step-text"><b>Ödeme Onayı</b>Ödemeniz kontrol ediliyor.</div>
+        </div>
+        <div class="order-step-row">
+          <div class="order-step-num" style="background:var(--border);color:var(--text-muted)">3</div>
+          <div class="order-step-text"><b>${kargoLabel}</b>${kargoText}</div>
+        </div>
+        <div class="order-step-row">
+          <div class="order-step-num" style="background:var(--border);color:var(--text-muted)">4</div>
+          <div class="order-step-text"><b>Teslimat</b>Siparişiniz adresinize teslim edilecek.</div>
+        </div>`;
     }
 
     $('co-order-id').textContent = '#' + (lastOrderId||Math.floor(Math.random()*90000+10000));
     cart = []; cartCouponDiscount = 0;
     updateCartUI();
     checkoutStep(4);
-    await loadEserler(); // ✅ Stok güncellenince kartlar yenilensin
-    showNotif('Siparişiniz alındı! 🎉');
+    if (!isAllEvents) await loadEserler(); // Eser alımında stok güncelle
+    else await loadEvents(); // Etkinlikte doluluk güncelle
+    showNotif(isAllEvents ? 'Rezervasyonunuz tamamlandı! 🎉' : 'Siparişiniz alındı! 🎉');
   } catch(err) {
     console.error('Ödeme hatası:', err);
     showNotif('Bağlantı hatası, tekrar deneyin.', 'error');
@@ -2866,9 +2999,18 @@ function closeCheckoutModal(e) {
 let eventsMap = {};
 
 // ── EVENT DETAIL MODAL ────────────────────────────────────────
-function openEventModal(id) {
-  const ev = allEvents.find(e => e.id===id);
+async function openEventModal(id) {
+  let ev = allEvents.find(e => e.id===id);
   if (!ev) return;
+  // Güncel doluluk bilgisi için backend'den taze veri çek
+  try {
+    const fr = await fetch(`${API}/etkinlikler/${id}`);
+    if (fr.ok) {
+      const fresh = await fr.json();
+      const idx = allEvents.findIndex(e => e.id===id);
+      if (idx !== -1) { allEvents[idx] = {...allEvents[idx], ...fresh}; ev = allEvents[idx]; }
+    }
+  } catch {}
   currentEvent = ev;
   eventsMap[`ev_${id}`] = ev;
 
@@ -2881,8 +3023,9 @@ function openEventModal(id) {
 
   const capacity = ev.capacity||1;
   const reserved = ev.reserved_count||0;
-  const pct = Math.min(100, Math.round(reserved/capacity*100));
-  $('event-modal-cap-text').textContent = `${reserved} / ${capacity} kişi (${pct}% dolu)`;
+  const totalParticipants = ev.total_participants||0;
+  const pct = Math.min(100, Math.round(totalParticipants/capacity*100));
+  $('event-modal-cap-text').textContent = `${totalParticipants} / ${capacity} kişi (${pct}% dolu)`;
   $('event-modal-cap-fill').style.width = pct+'%';
 
   $('event-modal-grid').innerHTML = `
@@ -2904,8 +3047,28 @@ function openEventModal(id) {
   document.querySelectorAll('#event-modal-tabs .modal-tab').forEach((t,i) => t.classList.toggle('active', i===0));
   document.querySelectorAll('#event-modal-bg .modal-tab-content').forEach((c,i) => c.classList.toggle('active', i===0));
   // Auth kontrolü
-  if (!currentUser) { $('event-review-auth-warning').style.display='block'; $('event-review-form-inner').style.display='none'; }
-  else { $('event-review-auth-warning').style.display='none'; $('event-review-form-inner').style.display='block'; }
+  if (!currentUser) { 
+    $('event-review-auth-warning').style.display='block'; 
+    $('event-review-reservation-warning').style.display='none';
+    $('event-review-form-inner').style.display='none'; 
+  } else { 
+    $('event-review-auth-warning').style.display='none'; 
+    // Check if user has reservation
+    try {
+      const rr = await (await authFetch(`${API}/katilim-kontrol/${currentUser.id}/${ev.id}`)).json();
+      if (rr.katildi) {
+        $('event-review-reservation-warning').style.display='none';
+        $('event-review-form-inner').style.display='block';
+      } else {
+        $('event-review-reservation-warning').style.display='block';
+        $('event-review-form-inner').style.display='none';
+      }
+    } catch {
+      // Bağlantı hatası — güvenli tarafta kal, yorum formunu gizle
+      $('event-review-reservation-warning').style.display='none';
+      $('event-review-form-inner').style.display='none';
+    }
+  }
   // Yorumları yükle
   loadEventModalReviews(ev.id);
 
@@ -3011,13 +3174,45 @@ $('res-count')?.addEventListener('input', updateResTotal);
 async function rezervasyonOlustur() {
   const date = $('res-date').value, count = parseInt($('res-count').value)||1;
   if (!date) { $('res-msg').innerHTML='<div class="form-msg error">Tarih seçin.</div>'; return; }
-  const r = await authFetch(`${API}/rezervasyon`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:resEventId,participant_count:count,reservation_date:date})});
-  const d = await r.json();
-  if (r.ok) {
-    $('res-msg').innerHTML=`<div class="form-msg success">✓ Rezervasyon oluşturuldu! #${d.reservation_id}</div>`;
-    showNotif('Rezervasyon başarıyla oluşturuldu! 📅');
-    setTimeout(() => $('res-modal-bg').classList.remove('open'), 1500);
-  } else $('res-msg').innerHTML=`<div class="form-msg error">${d.detail||'Hata.'}</div>`;
+  const btn = document.querySelector('#res-modal-bg .form-submit');
+  if (btn) { btn.disabled=true; btn.textContent='İşleniyor...'; }
+  try {
+    const r = await authFetch(`${API}/rezervasyon`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:resEventId,participant_count:count,reservation_date:date})});
+    const d = await r.json();
+    if (r.ok) {
+      $('res-msg').innerHTML=`<div class="form-msg success">✓ Rezervasyon oluşturuldu! #${d.reservation_id}</div>`;
+      // Ücretli etkinliklerde ödeme adımına geç
+      if (resEventPrice > 0) {
+        setTimeout(() => {
+          $('res-modal-bg').classList.remove('open');
+          // Ödeme için etkinliği sepete ekle ve checkout aç
+          const resEventObj = allEvents.find(e => e.id===resEventId);
+          const title = resEventObj ? resEventObj.title : $('res-event-title').textContent;
+          const totalPrice = resEventPrice * count;
+          // Mevcut sepeti temizle, sadece bu etkinliği ekle
+          cart = [{
+            id: `event_${resEventId}_${Date.now()}`,
+            title: title,
+            price: totalPrice,
+            eventId: resEventId,
+            participantCount: count,
+            type: 'event'
+          }];
+          updateCartUI();
+          checkoutBaslat();
+        }, 1200);
+      } else {
+        showNotif('Rezervasyon başarıyla oluşturuldu! 📅');
+        setTimeout(() => $('res-modal-bg').classList.remove('open'), 1500);
+        // Ücretsiz — etkinlik listesini güncelle
+        loadEvents();
+      }
+    } else {
+      $('res-msg').innerHTML=`<div class="form-msg error">${d.detail||'Hata.'}</div>`;
+    }
+  } finally {
+    if (btn) { btn.disabled=false; btn.textContent='Rezervasyonu Tamamla'; }
+  }
 }
 
 // ── KAMPANYALAR ────────────────────────────────────────────────
@@ -3037,32 +3232,7 @@ function copyCoupon(code) {
 }
 
 // ── İSTATİSTİKLER ─────────────────────────────────────────────
-async function loadStats() {
-  try {
-    const r = await fetch(`${API}/istatistik`);
-    const d = await r.json();
-    $('stat-summary').innerHTML = `
-      <div class="stat-card"><div class="stat-num">${d.eserler.length}</div><div class="stat-label">Toplam Eser</div></div>
-      <div class="stat-card"><div class="stat-num">${d.etkinlikler.length}</div><div class="stat-label">Etkinlik</div></div>
-      <div class="stat-card"><div class="stat-num">${d.toplam_kullanici}</div><div class="stat-label">Kullanıcı</div></div>
-      <div class="stat-card"><div class="stat-num">${fmtPrice(d.toplam_ciro)}</div><div class="stat-label">Toplam Ciro</div></div>`;
-    const atbl = $('stats-artworks-table');
-    atbl.innerHTML = `<tr><th>Eser</th><th>Sanatçı</th><th>Fiyat</th><th>Görüntülenme</th><th>Favori</th><th>Yorum</th><th>Ort. Puan</th><th>Satış</th></tr>`;
-    d.eserler.forEach(e => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><b>${e.title}</b></td><td>${e.artist_name||'—'}</td><td>${fmtPrice(e.price)}</td><td>${e.view_count||0}</td><td>${e.favorite_count||0}</td><td>${e.review_count||0}</td><td style="color:var(--accent)">${Number(e.avg_rating).toFixed(1)} ${stars(e.avg_rating)}</td><td>${e.sale_count||0}</td>`;
-      atbl.appendChild(tr);
-    });
-    const etbl = $('stats-events-table');
-    etbl.innerHTML = `<tr><th>Etkinlik</th><th>Tarih</th><th>Kapasite</th><th>Rezervasyon</th><th>Doluluk</th><th>Ort. Puan</th></tr>`;
-    d.etkinlikler.forEach(e => {
-      const pct = e.capacity > 0 ? Math.round((e.total_participants||0)/e.capacity*100) : 0;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td><b>${e.title}</b></td><td>${fmtDate(e.event_date)}</td><td>${e.capacity}</td><td>${e.reserved_count||0}</td><td><div style="display:flex;align-items:center;gap:8px"><div class="capacity-bar" style="width:80px;display:inline-block"><div class="capacity-fill" style="width:${pct}%"></div></div> %${pct}</div></td><td style="color:var(--accent)">${Number(e.avg_rating).toFixed(1)} ${stars(e.avg_rating)}</td>`;
-      etbl.appendChild(tr);
-    });
-  } catch { $('stat-summary').innerHTML=errorMsg(); }
-}
+
 
 // ── DESTEK ────────────────────────────────────────────────────
 async function destekGonder() {
@@ -3094,105 +3264,6 @@ async function loadMyTickets() {
         <b style="color:#2e7d32">💬 Destek Ekibi Cevabı:</b><br>${t.admin_reply}
       </div>` : '<div style="font-size:12px;color:var(--text-muted);font-style:italic">⏳ Cevap bekleniyor...</div>'}
     </div>`).join('') : '<div style="color:var(--text-muted);font-size:13px">Henüz talebiniz yok.</div>';
-}
-
-async function adminRaporYukle() {
-  const el = document.getElementById('rapor-icerik');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
-  try {
-    const r = await authFetch(API + '/admin/rapor');
-    const d = await r.json();
-    const o = d.ozet;
-
-    function para(n) { return '₺' + Number(n).toLocaleString('tr-TR', {maximumFractionDigits:0}); }
-
-    // KPI kartları
-    const kpiler = [
-      ['👥 Kullanıcı', o.toplam_kullanici],
-      ['🖼️ Eser', o.toplam_eser],
-      ['🎭 Etkinlik', o.toplam_etkinlik],
-      ['📦 Sipariş', o.toplam_siparis],
-      ['🎟️ Rezervasyon', o.toplam_rezervasyon],
-      ['💰 Toplam Ciro', para(o.toplam_ciro)],
-      ['🎧 Açık Destek', o.acik_talepler],
-      ['💬 Yorum', o.toplam_yorum],
-    ];
-
-    const kpiHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:28px">
-      ${kpiler.map(([k,v]) => `
-        <div class="stat-card">
-          <div class="stat-num" style="font-size:24px">${v}</div>
-          <div class="stat-label">${k}</div>
-        </div>`).join('')}
-    </div>`;
-
-    // En çok satan eserler tablosu
-    const satisHTML = `
-      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🏆 En Çok Satan Eserler</div>
-      <table class="stat-table" style="margin-bottom:28px">
-        <thead><tr><th>#</th><th>Eser</th><th>Sanatçı</th><th>Satış</th><th>Gelir</th></tr></thead>
-        <tbody>${d.en_cok_satan.map((r,i) => `<tr>
-          <td>${i+1}</td><td>${r.title}</td><td>${r.artist_name||'-'}</td>
-          <td><span class="status-badge onaylandi">${r.satis_adedi} adet</span></td>
-          <td style="color:var(--accent-dark);font-weight:700">${para(r.toplam_gelir)}</td>
-        </tr>`).join('')}</tbody>
-      </table>`;
-
-    // En popüler etkinlikler
-    const etkinlikHTML = `
-      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🎭 En Popüler Etkinlikler</div>
-      <table class="stat-table" style="margin-bottom:28px">
-        <thead><tr><th>#</th><th>Etkinlik</th><th>Tür</th><th>Rezervasyon</th><th>Katılımcı</th></tr></thead>
-        <tbody>${d.en_populer_etkinlik.map((r,i) => `<tr>
-          <td>${i+1}</td><td>${r.title}</td>
-          <td><span class="status-badge beklemede">${r.event_type}</span></td>
-          <td>${r.rezervasyon_sayisi}</td><td>${r.toplam_katilimci}</td>
-        </tr>`).join('')}</tbody>
-      </table>`;
-
-    // Kategori satış
-    const kategoriHTML = `
-      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🗂️ Kategori Bazlı Satış</div>
-      <table class="stat-table" style="margin-bottom:28px">
-        <thead><tr><th>Kategori</th><th>Satış Adedi</th><th>Toplam Gelir</th></tr></thead>
-        <tbody>${d.kategori_satis.map(r => `<tr>
-          <td>${r.kategori}</td><td>${r.satis_adedi}</td>
-          <td style="color:var(--accent-dark);font-weight:700">${para(r.toplam_gelir)}</td>
-        </tr>`).join('')}</tbody>
-      </table>`;
-
-    // Aylık ciro
-    const maxCiro = Math.max(...d.aylik_ciro.map(r=>r.ciro), 1);
-    const ciroHTML = `
-      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">📈 Aylık Ciro</div>
-      <div style="background:var(--white);border:1px solid var(--border);padding:16px;margin-bottom:28px">
-        ${d.aylik_ciro.length === 0 ? '<p style="color:var(--text-muted);font-size:13px">Henüz veri yok</p>' :
-          d.aylik_ciro.map(r => `
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
-              <span style="font-size:12px;color:var(--text-muted);width:65px;flex-shrink:0">${r.ay}</span>
-              <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden">
-                <div style="width:${(r.ciro/maxCiro*100).toFixed(1)}%;height:100%;background:var(--accent);border-radius:4px"></div>
-              </div>
-              <span style="font-size:12px;color:var(--accent-dark);font-weight:700;width:90px;text-align:right">${para(r.ciro)}</span>
-            </div>`).join('')}
-      </div>`;
-
-    // Son siparişler
-    const siparisHTML = `
-      <div style="font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">🕐 Son Siparişler</div>
-      <table class="stat-table">
-        <thead><tr><th>#</th><th>Müşteri</th><th>Ürün</th><th>Tutar</th><th>Durum</th></tr></thead>
-        <tbody>${d.son_siparisler.map(r => `<tr>
-          <td>${r.id}</td><td>${r.musteri||'-'}</td><td>${r.urun||'-'}</td>
-          <td style="color:var(--accent-dark);font-weight:700">${para(r.amount)}</td>
-          <td><span class="status-badge ${r.status==='onaylandı'?'onaylandi':r.status==='iptal'?'iptal':'beklemede'}">${r.status}</span></td>
-        </tr>`).join('')}</tbody>
-      </table>`;
-
-    el.innerHTML = kpiHTML + ciroHTML + satisHTML + etkinlikHTML + kategoriHTML + siparisHTML;
-  } catch(e) {
-    el.innerHTML = `<div class="form-msg error">Rapor yüklenemedi: ${e.message}</div>`;
-  }
 }
 
 // ── CHAT ─────────────────────────────────────────────────────

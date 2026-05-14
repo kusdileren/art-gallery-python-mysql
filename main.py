@@ -113,6 +113,7 @@ class Purchase(BaseModel):
     event_id: Optional[int] = None
     payment_method: str
     coupon_code: Optional[str] = None
+    participant_count: Optional[int] = 1
 
 class SupportMessage(BaseModel):
     user_id: Optional[int] = None
@@ -174,12 +175,10 @@ def etkinlikler():
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
         SELECT e.*,
-               COUNT(r.id) as reserved_count,
-               COALESCE(AVG(rv.rating), 0) as avg_rating
+               (SELECT COUNT(id) FROM reservations r WHERE r.event_id = e.id AND r.status != 'iptal') as reserved_count,
+               (SELECT COALESCE(SUM(participant_count), 0) FROM reservations r WHERE r.event_id = e.id AND r.status != 'iptal') as total_participants,
+               (SELECT COALESCE(AVG(rating), 0) FROM reviews rv WHERE rv.event_id = e.id) as avg_rating
         FROM events e
-        LEFT JOIN reservations r ON r.event_id = e.id AND r.status != 'iptal'
-        LEFT JOIN reviews rv ON rv.event_id = e.id
-        GROUP BY e.id
         ORDER BY e.event_date ASC
     """)
     res = cursor.fetchall()
@@ -192,13 +191,11 @@ def etkinlik_detay(event_id: int):
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
         SELECT e.*,
-               COUNT(r.id) as reserved_count,
-               COALESCE(AVG(rv.rating), 0) as avg_rating
+               (SELECT COUNT(id) FROM reservations r WHERE r.event_id = e.id AND r.status != 'iptal') as reserved_count,
+               (SELECT COALESCE(SUM(participant_count), 0) FROM reservations r WHERE r.event_id = e.id AND r.status != 'iptal') as total_participants,
+               (SELECT COALESCE(AVG(rating), 0) FROM reviews rv WHERE rv.event_id = e.id) as avg_rating
         FROM events e
-        LEFT JOIN reservations r ON r.event_id = e.id AND r.status != 'iptal'
-        LEFT JOIN reviews rv ON rv.event_id = e.id
         WHERE e.id = %s
-        GROUP BY e.id
     """, (event_id,))
     res = cursor.fetchone()
     conn.close()
@@ -342,13 +339,13 @@ def satin_al(p: Purchase, current_user=Depends(token_coz)):
         )
 
     elif p.event_id:
-        # event kısmı değişmiyor
         cursor.execute("SELECT price FROM events WHERE id=%s", (p.event_id,))
         item = cursor.fetchone()
         if not item:
             conn.close()
             raise HTTPException(status_code=404, detail="Etkinlik bulunamadı")
-        price = float(item['price']) * (1 - discount / 100)
+        participant_count = max(1, p.participant_count or 1)
+        price = float(item['price']) * participant_count * (1 - discount / 100)
         cursor.execute("""
             INSERT INTO orders (user_id, event_id, amount, payment_method, status)
             VALUES (%s, %s, %s, %s, 'onaylandı')
@@ -610,11 +607,15 @@ def yorum_yap(rev: Review, current_user=Depends(token_coz)):
             conn.close()
             raise HTTPException(status_code=400, detail="Bu esere zaten yorum yaptınız")
 
-        # Doğrulama: kullanıcı eseri satın almış mı?
+        # Doğrulama: kullanıcı eseri satın almış mı? (zorunlu)
         cursor.execute("""
             SELECT id FROM orders WHERE user_id=%s AND artwork_id=%s AND status='onaylandı'
         """, (rev.user_id, rev.artwork_id))
-        is_verified = cursor.fetchone() is not None
+        purchase = cursor.fetchone()
+        if not purchase:
+            conn.close()
+            raise HTTPException(status_code=403, detail="Bu esere yorum yapabilmek için önce satın almış olmanız gerekiyor")
+        is_verified = True
         cursor.execute("""
             INSERT INTO reviews (user_id, artwork_id, rating, comment, is_verified)
             VALUES (%s, %s, %s, %s, %s)
@@ -629,11 +630,15 @@ def yorum_yap(rev: Review, current_user=Depends(token_coz)):
             conn.close()
             raise HTTPException(status_code=400, detail="Bu etkinliğe zaten yorum yaptınız")
 
-        # Doğrulama: kullanıcı etkinliğe rezervasyon yapmış mı?
+        # Doğrulama: kullanıcı etkinliğe rezervasyon yapmış mı? (zorunlu)
         cursor.execute("""
             SELECT id FROM reservations WHERE user_id=%s AND event_id=%s AND status='onaylandı'
         """, (rev.user_id, rev.event_id))
-        is_verified = cursor.fetchone() is not None
+        reservation = cursor.fetchone()
+        if not reservation:
+            conn.close()
+            raise HTTPException(status_code=403, detail="Bu etkinliğe yorum yapabilmek için önce rezervasyon yapmış olmanız gerekiyor")
+        is_verified = True
         cursor.execute("""
             INSERT INTO reviews (user_id, event_id, rating, comment, is_verified)
             VALUES (%s, %s, %s, %s, %s)
@@ -794,14 +799,11 @@ def istatistik():
 
     cursor.execute("""
         SELECT e.id, e.title, e.capacity, e.price, e.event_date,
-               COUNT(DISTINCT r.id) as reserved_count,
-               COALESCE(SUM(r.participant_count), 0) as total_participants,
-               COALESCE(AVG(rv.rating), 0) as avg_rating,
-               COUNT(DISTINCT rv.id) as review_count
+               (SELECT COUNT(id) FROM reservations r WHERE r.event_id = e.id AND r.status != 'iptal') as reserved_count,
+               (SELECT COALESCE(SUM(participant_count), 0) FROM reservations r WHERE r.event_id = e.id AND r.status != 'iptal') as total_participants,
+               (SELECT COALESCE(AVG(rating), 0) FROM reviews rv WHERE rv.event_id = e.id) as avg_rating,
+               (SELECT COUNT(id) FROM reviews rv WHERE rv.event_id = e.id) as review_count
         FROM events e
-        LEFT JOIN reservations r ON r.event_id = e.id AND r.status != 'iptal'
-        LEFT JOIN reviews rv ON rv.event_id = e.id
-        GROUP BY e.id
     """)
     etkinlikler = cursor.fetchall()
 
@@ -1309,7 +1311,7 @@ def admin_rapor(current_user=Depends(admin_mi)):
     cursor.execute("SELECT COUNT(*) as toplam FROM orders WHERE status='onaylandı'")
     toplam_siparis = cursor.fetchone()['toplam']
 
-    cursor.execute("SELECT COUNT(*) as toplam FROM reservations WHERE status='onaylandı'")
+    cursor.execute("SELECT COALESCE(SUM(participant_count), 0) as toplam FROM reservations WHERE status='onaylandı'")
     toplam_rezervasyon = cursor.fetchone()['toplam']
 
     cursor.execute("SELECT COUNT(*) as toplam FROM support_tickets WHERE status='açık'")
