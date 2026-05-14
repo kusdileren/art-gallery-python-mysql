@@ -2740,10 +2740,28 @@ let cart = []; // {id, type:'artwork'|'event', title, price, image, artworkId, e
 let cartCouponDiscount = 0;
 let selectedPayMethod = 'kredi_karti';
 
+// --- YENİ EKLENEN FONKSİYONLAR ---
+function saveCart() {
+  localStorage.setItem('sanat_cart', JSON.stringify(cart));
+}
+
+function loadCart() {
+  try {
+    const saved = localStorage.getItem('sanat_cart');
+    if (saved) {
+      cart = JSON.parse(saved);
+      updateCartUI();
+    }
+  } catch (e) {
+    console.error("Sepet yüklenirken hata oluştu:", e);
+    cart = [];
+  }
+}
+
+
 function addArtworkToCart(artworkId, title, price, image) {
   if (!currentUser) { showPage('auth'); setAuthTab('login'); showNotif('Sepete eklemek için giriş yapın.','error'); return; }
   
-  // EKLENEN KISIM: Stok kontrolü
   const eser = allEserler.find(e => e.id === artworkId);
   if (eser && eser.stock <= 0) {
     showNotif('Bu eser stokta bulunmamaktadır.', 'error');
@@ -2752,7 +2770,11 @@ function addArtworkToCart(artworkId, title, price, image) {
   
   if (cart.find(c => c.type==='artwork' && c.artworkId===artworkId)) { showNotif('Bu eser zaten sepetinizde.','error'); return; }
   cart.push({id: Date.now(), type:'artwork', title, price, image, artworkId, eventId:null});
-  updateCartUI(); showNotif(`"${title}" sepete eklendi! 🛒`); toggleCart();
+  
+  updateCartUI(); 
+  saveCart(); // YENİ EKLENDİ
+  showNotif(`"${title}" sepete eklendi! 🛒`); 
+  toggleCart();
 }
 
 function addEventToCart(evObj) {
@@ -2760,12 +2782,16 @@ function addEventToCart(evObj) {
   if (!evObj) return;
   if (cart.find(c => c.type==='event' && c.eventId===evObj.id)) { showNotif('Bu etkinlik zaten sepetinizde.','error'); return; }
   cart.push({id: Date.now(), type:'event', title: evObj.title, price: Number(evObj.price), image:`images/${evObj.image_url||''}`, artworkId:null, eventId:evObj.id});
-  updateCartUI(); showNotif(`"${evObj.title}" sepete eklendi! 🛒`); toggleCart();
+  
+  updateCartUI(); 
+  saveCart(); // YENİ EKLENDİ
+  showNotif(`"${evObj.title}" sepete eklendi! 🛒`); 
+  toggleCart();
 }
-
 function removeFromCart(cartItemId) {
   cart = cart.filter(c => c.id !== cartItemId);
   updateCartUI();
+  saveCart(); // YENİ EKLENDİ
 }
 
 function getCartTotal() {
@@ -2976,6 +3002,7 @@ async function odemeOnayla() {
     $('co-order-id').textContent = '#' + (lastOrderId||Math.floor(Math.random()*90000+10000));
     cart = []; cartCouponDiscount = 0;
     updateCartUI();
+    saveCart(); // YENİ EKLENDİ: Ödeme bitince belleği de sıfırla
     checkoutStep(4);
     if (!isAllEvents) await loadEserler(); // Eser alımında stok güncelle
     else await loadEvents(); // Etkinlikte doluluk güncelle
@@ -3326,6 +3353,7 @@ if (loadSession()) {
 loadEserler();
 loadEvents();
 loadKampanyalar();
+loadCart(); // YENİ EKLENDİ: Sayfa açılınca sepeti belleğinden çek
 </script>
 </body>
 </html>
