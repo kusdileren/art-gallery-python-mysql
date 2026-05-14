@@ -1,15 +1,18 @@
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
 from database import get_db_connection
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-import os, uuid, shutil, bcrypt
+import os, uuid, shutil, bcrypt, time
 
-app = FastAPI()
+# ─── GİRİŞ DENEME TAKİBİ ────────────────────────────────────
+# { email: {"count": int, "locked_until": float} }
+login_attempts: dict = {}
+MAX_ATTEMPTS = 5
+LOCKOUT_SECONDS = 300
 
 SECRET_KEY = os.getenv("JWT_SECRET")
 if not SECRET_KEY:
@@ -37,12 +40,7 @@ def admin_mi(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=403, detail="Bu işlem için admin yetkisi gerekli")
     return user
 
-app = FastAPI(title="KTÜ Sanat Galerisi API")
-
-# images/ klasörünü statik dosya olarak sun
-IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "images")
-os.makedirs(IMAGES_DIR, exist_ok=True)
-app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
+app = FastAPI(title="KTÜ Sanat Galerisi API")  # ✅ Tek tanım, başlıklı
 
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5500").split(",")
 
@@ -53,7 +51,10 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-app.mount("/images", StaticFiles(directory="images"), name="images")
+# ✅ images/ klasörünü tek seferinde mount et
+IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "images")
+os.makedirs(IMAGES_DIR, exist_ok=True)
+app.mount("/images", StaticFiles(directory=IMAGES_DIR), name="images")
 
 # ─── MODELLER ───────────────────────────────────────────────
 class Review(BaseModel):
@@ -206,19 +207,22 @@ def etkinlik_detay(event_id: int):
 # ─── MADDE 3: FAVORİLERE EKLEME ────────────────────────────
 @app.post("/favori-ekle")
 def favori_ekle(fav: Favorite, current_user=Depends(token_coz)):
+    user_id = current_user["user_id"]  # ✅ JWT'den al, body'den değil
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM favorites WHERE user_id=%s AND artwork_id=%s", (fav.user_id, fav.artwork_id))
+    cursor.execute("SELECT id FROM favorites WHERE user_id=%s AND artwork_id=%s", (user_id, fav.artwork_id))
     if cursor.fetchone():
         conn.close()
         raise HTTPException(status_code=400, detail="Zaten favorilerde")
-    cursor.execute("INSERT INTO favorites (user_id, artwork_id) VALUES (%s, %s)", (fav.user_id, fav.artwork_id))
+    cursor.execute("INSERT INTO favorites (user_id, artwork_id) VALUES (%s, %s)", (user_id, fav.artwork_id))
     conn.commit()
     conn.close()
     return {"mesaj": "Favorilere eklendi"}
 
 @app.get("/favoriler/{user_id}")
 def favoriler(user_id: int, current_user=Depends(token_coz)):
+    if current_user["user_id"] != user_id and current_user["role"] != "admin":  # ✅ Yetki kontrolü
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -234,6 +238,8 @@ def favoriler(user_id: int, current_user=Depends(token_coz)):
 
 @app.delete("/favori-kaldir/{user_id}/{artwork_id}")
 def favori_kaldir(user_id: int, artwork_id: int, current_user=Depends(token_coz)):
+    if current_user["user_id"] != user_id and current_user["role"] != "admin":  # ✅ Yetki kontrolü
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("DELETE FROM favorites WHERE user_id=%s AND artwork_id=%s", (user_id, artwork_id))
@@ -244,6 +250,7 @@ def favori_kaldir(user_id: int, artwork_id: int, current_user=Depends(token_coz)
 # ─── MADDE 4 & 5: REZERVASYON OLUŞTURMA VE GÜNCELLEME ──────
 @app.post("/rezervasyon")
 def rezervasyon_olustur(res: Reservation, current_user=Depends(token_coz)):
+    user_id = current_user["user_id"]  # ✅ JWT'den al
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     # Kontenjan kontrolü
@@ -263,7 +270,7 @@ def rezervasyon_olustur(res: Reservation, current_user=Depends(token_coz)):
     cursor.execute("""
         INSERT INTO reservations (user_id, event_id, participant_count, reservation_date, status)
         VALUES (%s, %s, %s, %s, 'onaylandı')
-    """, (res.user_id, res.event_id, res.participant_count, res.reservation_date))
+    """, (user_id, res.event_id, res.participant_count, res.reservation_date))
     conn.commit()
     rid = cursor.lastrowid
     conn.close()
@@ -272,7 +279,16 @@ def rezervasyon_olustur(res: Reservation, current_user=Depends(token_coz)):
 @app.put("/rezervasyon-guncelle")
 def rezervasyon_guncelle(upd: ReservationUpdate, current_user=Depends(token_coz)):
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
+    # ✅ Rezervasyonun bu kullanıcıya ait olduğunu doğrula
+    cursor.execute("SELECT user_id FROM reservations WHERE id=%s", (upd.reservation_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Rezervasyon bulunamadı")
+    if row["user_id"] != current_user["user_id"] and current_user["role"] != "admin":
+        conn.close()
+        raise HTTPException(status_code=403, detail="Bu rezervasyon size ait değil")
     fields = []
     vals = []
     if upd.participant_count is not None:
@@ -291,7 +307,16 @@ def rezervasyon_guncelle(upd: ReservationUpdate, current_user=Depends(token_coz)
 @app.delete("/rezervasyon-iptal/{reservation_id}")
 def rezervasyon_iptal(reservation_id: int, current_user=Depends(token_coz)):
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
+    # ✅ Rezervasyonun bu kullanıcıya ait olduğunu doğrula
+    cursor.execute("SELECT user_id FROM reservations WHERE id=%s", (reservation_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Rezervasyon bulunamadı")
+    if row["user_id"] != current_user["user_id"] and current_user["role"] != "admin":
+        conn.close()
+        raise HTTPException(status_code=403, detail="Bu rezervasyon size ait değil")
     cursor.execute("UPDATE reservations SET status='iptal' WHERE id=%s", (reservation_id,))
     conn.commit()
     conn.close()
@@ -300,6 +325,7 @@ def rezervasyon_iptal(reservation_id: int, current_user=Depends(token_coz)):
 # ─── MADDE 6: SATIN ALMA VE ÖDEME ──────────────────────────
 @app.post("/satin-al")
 def satin_al(p: Purchase, current_user=Depends(token_coz)):
+    user_id = current_user["user_id"]  # ✅ JWT'den al
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
@@ -330,7 +356,7 @@ def satin_al(p: Purchase, current_user=Depends(token_coz)):
         cursor.execute("""
             INSERT INTO orders (user_id, artwork_id, amount, payment_method, status)
             VALUES (%s, %s, %s, %s, 'onaylandı')
-        """, (p.user_id, p.artwork_id, price, p.payment_method))
+        """, (user_id, p.artwork_id, price, p.payment_method))
         
         # ✅ STOĞU AZALT
         cursor.execute(
@@ -349,7 +375,7 @@ def satin_al(p: Purchase, current_user=Depends(token_coz)):
         cursor.execute("""
             INSERT INTO orders (user_id, event_id, amount, payment_method, status)
             VALUES (%s, %s, %s, %s, 'onaylandı')
-        """, (p.user_id, p.event_id, price, p.payment_method))
+        """, (user_id, p.event_id, price, p.payment_method))
 
     conn.commit()
     oid = cursor.lastrowid
@@ -375,19 +401,42 @@ def kayit(user: User):
 
 @app.post("/giris")
 def giris(creds: UserLogin):
+    email = creds.email
+    now = time.time()
+    attempt = login_attempts.get(email, {"count": 0, "locked_until": 0})
+
+    # ✅ Kilitli mi kontrol et
+    if attempt["locked_until"] > now:
+        kalan = int(attempt["locked_until"] - now)
+        raise HTTPException(status_code=429, detail=f"Çok fazla hatalı deneme. {kalan} saniye bekleyin.")
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, full_name, email, role, password FROM users WHERE email=%s", (creds.email,))
+    cursor.execute("SELECT id, full_name, email, role, password FROM users WHERE email=%s", (email,))
     user = cursor.fetchone()
     conn.close()
+
     if not user or not bcrypt.checkpw(creds.password.encode("utf-8"), user["password"].encode("utf-8")):
-        raise HTTPException(status_code=401, detail="Hatalı e-posta veya şifre")
-    token = token_olustur(user["id"], user["role"])  # token eklendi
+        # ✅ Başarısız denemeyi kaydet
+        attempt["count"] += 1
+        if attempt["count"] >= MAX_ATTEMPTS:
+            attempt["locked_until"] = now + LOCKOUT_SECONDS
+            attempt["count"] = 0
+            login_attempts[email] = attempt
+            raise HTTPException(status_code=429, detail=f"5 hatalı deneme. {LOCKOUT_SECONDS} saniye hesabınız kilitlendi.")
+        login_attempts[email] = attempt
+        kalan_hak = MAX_ATTEMPTS - attempt["count"]
+        raise HTTPException(status_code=401, detail=f"Hatalı e-posta veya şifre. {kalan_hak} deneme hakkınız kaldı.")
+
+    # ✅ Başarılı girişte sayacı sıfırla
+    login_attempts.pop(email, None)
+    token = token_olustur(user["id"], user["role"])
     user.pop("password", None)
     return {"mesaj": "Giriş başarılı", "token": token, "user": user}
 
 @app.put("/profil-guncelle")
 def profil_guncelle(upd: UserUpdate, current_user=Depends(token_coz)):
+    user_id = current_user["user_id"]  # ✅ JWT'den al
     conn = get_db_connection()
     cursor = conn.cursor()
     fields, vals = [], []
@@ -396,7 +445,7 @@ def profil_guncelle(upd: UserUpdate, current_user=Depends(token_coz)):
     if not fields:
         conn.close()
         return {"mesaj": "Güncellenecek alan yok"}
-    vals.append(upd.user_id)
+    vals.append(user_id)
     cursor.execute(f"UPDATE users SET {', '.join(fields)} WHERE id=%s", vals)
     conn.commit()
     conn.close()
@@ -404,15 +453,16 @@ def profil_guncelle(upd: UserUpdate, current_user=Depends(token_coz)):
 
 @app.put("/sifre-degistir")
 def sifre_degistir(req: PasswordChange, current_user=Depends(token_coz)):
+    user_id = current_user["user_id"]  # ✅ JWT'den al
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, password FROM users WHERE id=%s", (req.user_id,))
+    cursor.execute("SELECT id, password FROM users WHERE id=%s", (user_id,))
     user = cursor.fetchone()
     if not user or not bcrypt.checkpw(req.old_password.encode("utf-8"), user["password"].encode("utf-8")):
         conn.close()
         raise HTTPException(status_code=400, detail="Mevcut şifre hatalı")
     new_hashed = bcrypt.hashpw(req.new_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    cursor.execute("UPDATE users SET password=%s WHERE id=%s", (new_hashed, req.user_id))
+    cursor.execute("UPDATE users SET password=%s WHERE id=%s", (new_hashed, user_id))
     conn.commit()
     conn.close()
     return {"mesaj": "Şifre değiştirildi"}
@@ -420,6 +470,8 @@ def sifre_degistir(req: PasswordChange, current_user=Depends(token_coz)):
 # ─── MADDE 8: SİPARİŞ VE REZERVASYON TAKİBİ ───────────────
 @app.get("/siparislerim/{user_id}")
 def siparislerim(user_id: int, current_user=Depends(token_coz)):
+    if current_user["user_id"] != user_id and current_user["role"] != "admin":  # ✅ Yetki kontrolü
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -438,6 +490,8 @@ def siparislerim(user_id: int, current_user=Depends(token_coz)):
 
 @app.get("/rezervasyonlarim/{user_id}")
 def rezervasyonlarim(user_id: int, current_user=Depends(token_coz)):
+    if current_user["user_id"] != user_id and current_user["role"] != "admin":  # ✅ Yetki kontrolü
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -490,12 +544,13 @@ def kupon_kontrol(body: dict):
 # ─── MADDE 10: MÜŞTERİ DESTEK ──────────────────────────────
 @app.post("/destek-mesaji")
 def destek_mesaji(msg: SupportMessage, current_user=Depends(token_coz)):
+    user_id = current_user["user_id"]  # ✅ JWT'den al
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO support_tickets (user_id, name, email, message, status)
         VALUES (%s, %s, %s, %s, 'açık')
-    """, (msg.user_id, msg.name, msg.email, msg.message))
+    """, (user_id, msg.name, msg.email, msg.message))
     conn.commit()
     tid = cursor.lastrowid
     conn.close()
@@ -503,6 +558,8 @@ def destek_mesaji(msg: SupportMessage, current_user=Depends(token_coz)):
 
 @app.get("/destek-taleplerim/{user_id}")
 def destek_taleplerim(user_id: int, current_user=Depends(token_coz)):
+    if current_user["user_id"] != user_id and current_user["role"] != "admin":  # ✅ Yetki kontrolü
+        raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("SELECT * FROM support_tickets WHERE user_id=%s ORDER BY created_at DESC", (user_id,))
