@@ -1524,11 +1524,18 @@ async function adminSil(endpoint, onay, reloadFn) {
 }
 async function adminDurumGuncelle(endpoint, status, reloadFn) {
   try {
-    const r = await fetch(`${API}/${endpoint}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status})});
+    const r = await authFetch(`${API}/${endpoint}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status})});
     const d = await r.json();
-    showNotif(d.mesaj || 'Güncellendi.');
-    reloadFn();
-  } catch { showNotif('Bağlantı hatası!'); }
+    
+    if (r.ok) {
+      showNotif(d.mesaj || 'Güncellendi.');
+      reloadFn();
+    } else {
+      showNotif(d.detail || 'Bir hata oluştu.', 'error');
+    }
+  } catch { 
+    showNotif('Bağlantı hatası!', 'error'); 
+  }
 }
 
 async function loadAdminArtworks() {
