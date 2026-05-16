@@ -666,7 +666,7 @@ def yorum_yap(rev: Review, current_user=Depends(token_coz)):
 
         # Doğrulama: kullanıcı eseri satın almış mı? (zorunlu)
         cursor.execute("""
-            SELECT id FROM orders WHERE user_id=%s AND artwork_id=%s AND status='onaylandı'
+            SELECT id FROM orders WHERE user_id=%s AND artwork_id=%s AND status IN ('onaylandı','kargoda','teslim_edildi')
         """, (rev.user_id, rev.artwork_id))
         purchase = cursor.fetchone()
         if not purchase:
@@ -823,7 +823,7 @@ def satin_alim_kontrol(user_id: int, artwork_id: int):
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
         SELECT id FROM orders
-        WHERE user_id=%s AND artwork_id=%s AND status='onaylandı'
+        WHERE user_id=%s AND artwork_id=%s AND status IN ('onaylandı','kargoda','teslim_edildi')
     """, (user_id, artwork_id))
     res = cursor.fetchone()
     conn.close()
@@ -848,7 +848,7 @@ def istatistik():
         LEFT JOIN reviews r ON r.artwork_id = a.id
         LEFT JOIN favorites f ON f.artwork_id = a.id
         LEFT JOIN artwork_views v ON v.artwork_id = a.id
-        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status='onaylandı'
+        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status IN ('onaylandı','kargoda','teslim_edildi')
         GROUP BY a.id
         ORDER BY a.price DESC
     """)
@@ -867,7 +867,7 @@ def istatistik():
     cursor.execute("SELECT COUNT(*) as total FROM users")
     toplam_kullanici = cursor.fetchone()['total']
 
-    cursor.execute("SELECT COALESCE(SUM(amount), 0) as toplam FROM orders WHERE status='onaylandı'")
+    cursor.execute("SELECT COALESCE(SUM(amount), 0) as toplam FROM orders WHERE status IN ('onaylandı','kargoda','teslim_edildi')")
     toplam_ciro = cursor.fetchone()['toplam']
 
     conn.close()
@@ -1362,10 +1362,10 @@ def admin_rapor(current_user=Depends(admin_mi)):
     cursor.execute("SELECT COUNT(*) as toplam FROM events")
     toplam_etkinlik = cursor.fetchone()['toplam']
 
-    cursor.execute("SELECT COALESCE(SUM(amount), 0) as toplam FROM orders WHERE status='onaylandı'")
+    cursor.execute("SELECT COALESCE(SUM(amount), 0) as toplam FROM orders WHERE status IN ('onaylandı','kargoda','teslim_edildi')")
     toplam_ciro = float(cursor.fetchone()['toplam'])
 
-    cursor.execute("SELECT COUNT(*) as toplam FROM orders WHERE status='onaylandı'")
+    cursor.execute("SELECT COUNT(*) as toplam FROM orders WHERE status IN ('onaylandı','kargoda','teslim_edildi')")
     toplam_siparis = cursor.fetchone()['toplam']
 
     cursor.execute("SELECT COALESCE(SUM(participant_count), 0) as toplam FROM reservations WHERE status='onaylandı'")
@@ -1383,7 +1383,7 @@ def admin_rapor(current_user=Depends(admin_mi)):
                COALESCE(SUM(o.amount), 0) as toplam_gelir
         FROM artworks a
         LEFT JOIN artists ar ON a.artist_id = ar.id
-        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status='onaylandı'
+        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status IN ('onaylandı','kargoda','teslim_edildi')
         GROUP BY a.id
         ORDER BY satis_adedi DESC
         LIMIT 5
@@ -1409,7 +1409,7 @@ def admin_rapor(current_user=Depends(admin_mi)):
                COALESCE(SUM(amount), 0) as ciro,
                COUNT(*) as siparis_sayisi
         FROM orders
-        WHERE status='onaylandı'
+        WHERE status IN ('onaylandı','kargoda','teslim_edildi')
           AND created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
         GROUP BY ay
         ORDER BY ay ASC
@@ -1423,7 +1423,7 @@ def admin_rapor(current_user=Depends(admin_mi)):
                COALESCE(SUM(o.amount), 0) as toplam_gelir
         FROM categories c
         LEFT JOIN artworks a ON a.category_id = c.id
-        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status='onaylandı'
+        LEFT JOIN orders o ON o.artwork_id = a.id AND o.status IN ('onaylandı','kargoda','teslim_edildi')
         GROUP BY c.id
         ORDER BY toplam_gelir DESC
     """)
