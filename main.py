@@ -481,7 +481,7 @@ def siparislerim(user_id: int, current_user=Depends(token_coz)):
         FROM orders o
         LEFT JOIN artworks a ON o.artwork_id = a.id
         LEFT JOIN events e ON o.event_id = e.id
-        WHERE o.user_id = %s
+        WHERE o.user_id = %s AND o.artwork_id IS NOT NULL
         ORDER BY o.created_at DESC
     """, (user_id,))
     res = cursor.fetchall()
@@ -756,7 +756,40 @@ def etkinlik_yorumlari(event_id: int, siralama: str = "yeni"):
     res = cursor.fetchall()
     conn.close()
     return res
-
+class ReviewEdit(BaseModel):
+    review_id: int
+    rating: int
+    comment: str
+@app.put("/yorum-duzenle-kullanici")
+def yorum_duzenle_kullanici(req: ReviewEdit, current_user=Depends(token_coz)):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT user_id FROM reviews WHERE id=%s", (req.review_id,))
+    rev = cursor.fetchone()
+    if not rev or rev["user_id"] != current_user["user_id"]:
+        conn.close()
+        raise HTTPException(status_code=403, detail="Yetkiniz yok")
+    
+    cursor.execute("UPDATE reviews SET rating=%s, comment=%s WHERE id=%s", (req.rating, req.comment, req.review_id))
+    conn.commit()
+    conn.close()
+    return {"mesaj": "Yorum güncellendi"}
+@app.delete("/yorum-sil-kullanici/{review_id}")
+def yorum_sil_kullanici(review_id: int, current_user=Depends(token_coz)):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT user_id FROM reviews WHERE id=%s", (review_id,))
+    rev = cursor.fetchone()
+    if not rev or rev["user_id"] != current_user["user_id"]:
+        conn.close()
+        raise HTTPException(status_code=403, detail="Yetkiniz yok")
+    
+    cursor.execute("DELETE FROM review_votes WHERE review_id=%s", (review_id,))
+    cursor.execute("DELETE FROM review_replies WHERE review_id=%s", (review_id,))
+    cursor.execute("DELETE FROM reviews WHERE id=%s", (review_id,))
+    conn.commit()
+    conn.close()
+    return {"mesaj": "Yorum silindi"}
 # ─── MADDE 13: YORUMLARI DEĞERLENDİRME ─────────────────────
 @app.post("/yorum-oy")
 def yorum_oy(vote: ReviewVote, current_user=Depends(token_coz)):
