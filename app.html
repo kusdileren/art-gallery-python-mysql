@@ -1170,10 +1170,16 @@
     <span>💬 Canlı Destek</span>
     <button onclick="toggleChat()" style="background:none;border:none;color:white;cursor:pointer;font-size:18px">✕</button>
   </div>
+  <!-- Giriş yapılmamışsa gösterilir -->
+  <div id="chat-login-overlay" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;gap:12px;text-align:center;flex:1">
+    <div style="font-size:32px">🔒</div>
+    <div style="font-size:14px;color:var(--text-mid);line-height:1.5">Canlı destek için giriş yapmanız gerekmektedir.</div>
+    <button onclick="toggleChat();showPage('auth');setAuthTab('login')" style="padding:8px 22px;background:var(--nav-bg);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px">Giriş Yap</button>
+  </div>
   <div class="chat-messages" id="chat-messages">
     <div class="chat-msg bot">Merhaba! KTÜ Sanat Galerisi'ne hoş geldiniz. Size nasıl yardımcı olabilirim?</div>
   </div>
-  <div class="chat-input-row">
+  <div class="chat-input-row" id="chat-input-row">
     <input type="text" id="chat-input" placeholder="Mesajınızı yazın..." onkeydown="if(event.key==='Enter')sendChat()">
     <button onclick="sendChat()">➤</button>
   </div>
@@ -1253,6 +1259,7 @@ async function authFetch(url, options = {}) {
   const r = await fetch(url, options);
   if (r.status === 401) {
     currentUser = null; saveSession(); setLoggedIn(false);
+    resetChat(); // Token süresi dolunca da sohbeti temizle
     showPage('auth'); setAuthTab('login');
     showNotif('Oturumunuz sona erdi, tekrar giriş yapın.', 'error');
     throw new Error('Unauthorized');
@@ -1291,6 +1298,7 @@ function showPage(page) {
   if (page === 'account' && currentUser) loadAccountData();
   if (page === 'compare') { renderCompareTable(); loadComparePageHistory(); }
   if (page === 'admin' && currentUser?.role === 'admin') { adminIstatistikYukle(); }
+  if (page === 'support' && currentUser) loadMyTickets();
 }
 function goAccount() {
   if (!currentUser) { showPage('auth'); setAuthTab('login'); }
@@ -1338,7 +1346,9 @@ async function girisYap() {
   } catch { msg.innerHTML='<div class="form-msg error">Sunucuya bağlanılamadı. Backend çalışıyor mu?</div>'; }
 }
 function logout() {
-  currentUser = null; saveSession(); setLoggedIn(false); $('login-pass').value = ''; showPage('home'); showNotif('Çıkış yapıldı.');
+  currentUser = null; saveSession(); setLoggedIn(false); $('login-pass').value = '';
+  resetChat(); // Sohbet geçmişini ve widget'ı sıfırla
+  showPage('home'); showNotif('Çıkış yapıldı.');
 }
 
 // ── ADMIN PANELİ ──────────────────────────────────────────────
@@ -2038,14 +2048,13 @@ function setLoggedIn(on) {
   if (on && currentUser) {
     $('user-name-display').textContent = currentUser.full_name;
     const isAdmin = currentUser.role === 'admin';
-    // Elementler varsa işlem yap, yoksa hata verme
     if ($('nav-stats-li')) $('nav-stats-li').style.display = isAdmin ? 'block' : 'none';
     if ($('footer-stats-li')) $('footer-stats-li').style.display = isAdmin ? 'block' : 'none';
   } else {
-    // Elementler varsa gizle
     if ($('nav-stats-li')) $('nav-stats-li').style.display = 'none';
     if ($('footer-stats-li')) $('footer-stats-li').style.display = 'none';
   }
+  updateChatLoginState(); // Giriş/çıkış her değiştiğinde chat widget'ı güncelle
 }
 
 // ── ACCOUNT PANELS ────────────────────────────────────────────
@@ -3284,10 +3293,16 @@ async function destekGonder() {
 }
 async function loadMyTickets() {
   if (!currentUser) return;
-  $('my-tickets-section').style.display='block';
-  const r = await authFetch(`${API}/destek-taleplerim/${currentUser.id}`);
-  const list = await r.json();
-  $('my-tickets').innerHTML = list.length ? list.map(t => `
+  const section = $('my-tickets-section');
+  const container = $('my-tickets');
+  if (!section || !container) return; // DOM henüz hazır değilse çık
+  section.style.display='block';
+  container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  try {
+    const r = await authFetch(`${API}/destek-taleplerim/${currentUser.id}`);
+    if (!r.ok) throw new Error();
+    const list = await r.json();
+    container.innerHTML = list.length ? list.map(t => `
     <div style="background:var(--white);border:1px solid var(--border);padding:14px 18px;margin-bottom:10px;border-radius:8px">
       <div style="display:flex;justify-content:space-between;margin-bottom:6px">
         <span style="font-size:12px;color:var(--text-muted)">${fmtDate(t.created_at)}</span>
@@ -3296,8 +3311,12 @@ async function loadMyTickets() {
       <div style="font-size:14px;margin-bottom:8px">${t.message}</div>
       ${t.admin_reply ? `<div style="background:#e8f5e9;border-left:3px solid #4caf50;padding:10px 14px;border-radius:0 6px 6px 0;font-size:13px">
         <b style="color:#2e7d32">💬 Destek Ekibi Cevabı:</b><br>${t.admin_reply}
+        ${t.replied_at ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px">${new Date(t.replied_at).toLocaleString('tr-TR')}</div>` : ''}
       </div>` : '<div style="font-size:12px;color:var(--text-muted);font-style:italic">⏳ Cevap bekleniyor...</div>'}
     </div>`).join('') : '<div style="color:var(--text-muted);font-size:13px">Henüz talebiniz yok.</div>';
+  } catch {
+    container.innerHTML = '<div style="color:var(--text-muted);font-size:13px">Talepler yüklenemedi.</div>';
+  }
 }
 
 // ── CHAT ─────────────────────────────────────────────────────
@@ -3318,22 +3337,55 @@ async function adminTicketCevapla(ticketId) {
   } catch { if (msg) msg.textContent = '⚠️ Bağlantı hatası.'; }
 }
 
-function toggleChat() { $('chat-widget').classList.toggle('open'); }
+function toggleChat() {
+  $('chat-widget').classList.toggle('open');
+  if ($('chat-widget').classList.contains('open')) updateChatLoginState();
+}
 
-// ── CANLI DESTEK — Claude AI ──────────────────────────────────
+function updateChatLoginState() {
+  const loggedIn = !!currentUser;
+  const overlay = $('chat-login-overlay');
+  const messages = $('chat-messages');
+  const inputRow = $('chat-input-row');
+  if (overlay) overlay.style.display = loggedIn ? 'none' : 'flex';
+  if (messages) messages.style.display = loggedIn ? 'flex' : 'none';
+  if (inputRow) inputRow.style.display = loggedIn ? 'flex' : 'none';
+}
+
+function resetChat() {
+  chatHistory = [];
+  const msgs = $('chat-messages');
+  if (msgs) msgs.innerHTML = '<div class="chat-msg bot">Merhaba! KTÜ Sanat Galerisi\'ne hoş geldiniz. Size nasıl yardımcı olabilirim?</div>';
+  // Widget'ı kapat ve giriş overlay'ini göster
+  if ($('chat-widget')) $('chat-widget').classList.remove('open');
+  updateChatLoginState();
+}
+
+// ── CANLI DESTEK ─────────────────────────────────────────────
 let chatHistory = [];
 async function sendChat() {
   const input = $('chat-input'), userMsg = input.value.trim();
   if (!userMsg) return;
+
+  // Giriş yapılmamışsa engelle (double-check)
+  if (!currentUser) {
+    updateChatLoginState();
+    return;
+  }
+
   const msgs = $('chat-messages');
   msgs.innerHTML += `<div class="chat-msg user">${userMsg}</div>`;
   input.value = '';
   msgs.scrollTop = msgs.scrollHeight;
 
-  // Mesajı support_tickets'a kaydet
+  // Mesajı support_tickets'a kaydet — user_id her zaman mevcut
   try {
-    const body = { message: userMsg, name: currentUser ? currentUser.full_name : 'Ziyaretçi', email: currentUser ? currentUser.email : 'ziyaretci@ktu.edu.tr' };
-    if (currentUser) body.user_id = currentUser.id;
+    const body = {
+      message: userMsg,
+      name: currentUser.full_name,
+      email: currentUser.email,
+      user_id: currentUser.id
+    };
     const r = await authFetch(`${API}/destek-mesaji`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -3341,8 +3393,8 @@ async function sendChat() {
     });
     const d = await r.json();
     if (r.ok) {
-      msgs.innerHTML += `<div class="chat-msg bot">Mesajınız alındı! Talep numaranız: <b>#${d.ticket_id}</b><br><span style="font-size:12px;opacity:.8">Destek ekibimiz en kısa sürede yanıt verecek. Yanıtı <b>Hesabım → Destek</b> bölümünden takip edebilirsiniz.</span></div>`;
-      if (currentUser) loadMyTickets();
+      msgs.innerHTML += `<div class="chat-msg bot">Mesajınız alındı! Talep numaranız: <b>#${d.ticket_id}</b><br><span style="font-size:12px;opacity:.8">Destek ekibimiz en kısa sürede yanıt verecek. Yanıtı <b>Destek</b> sayfasından takip edebilirsiniz.</span></div>`;
+      loadMyTickets(); // Kullanıcının talep listesini güncelle
     } else {
       msgs.innerHTML += `<div class="chat-msg bot">Mesajınız gönderilemedi. Lütfen tekrar deneyin.</div>`;
     }
