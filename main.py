@@ -1266,7 +1266,7 @@ def admin_ticket_cevapla(ticket_id: int, rep: TicketReply, current_user=Depends(
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "UPDATE support_tickets SET admin_reply=%s, replied_at=NOW(), status='kapatıldı' WHERE id=%s",
+        "UPDATE support_tickets SET admin_reply=%s, replied_at=NOW(), status='işlemde' WHERE id=%s",
         (rep.reply, ticket_id)
     )
     conn.commit()
