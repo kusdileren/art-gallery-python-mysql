@@ -857,6 +857,28 @@
     </div>
   </div>
 </div>
+<!-- ARTIST BIO MODAL -->
+<div class="modal-bg" id="artist-modal-bg" onclick="closeArtistModal(event)" style="z-index:1200">
+  <div class="modal" style="max-width:560px">
+    <button class="modal-close" onclick="closeArtistModal()">✕</button>
+    <div id="artist-modal-loading" style="padding:60px;text-align:center">
+      <div class="spinner" style="margin:0 auto 16px"></div>
+      <span style="color:var(--text-muted);font-family:'Cormorant Garamond',serif;font-size:18px;font-style:italic">Yükleniyor...</span>
+    </div>
+    <div id="artist-modal-content" style="display:none">
+      <div style="background:var(--nav-bg);padding:32px 36px 28px">
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:10px" id="artist-modal-nationality"></div>
+        <div style="font-family:'Playfair Display',serif;font-size:30px;color:white;margin-bottom:6px" id="artist-modal-name"></div>
+        <div style="font-size:13px;color:rgba(255,255,255,.5)" id="artist-modal-birth"></div>
+      </div>
+      <div style="padding:28px 36px">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--text-mid);line-height:1.75" id="artist-modal-bio"></div>
+        <div id="artist-modal-artworks" style="margin-top:24px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -2329,7 +2351,7 @@ function eserCard(eser, idx, isFav=false) {
         <div class="product-overlay">${overlayBtn}</div>
       </div>
       <div class="product-info">
-        <div class="product-artist">${eser.artist_name||'Bilinmeyen'}</div>
+        <div class="product-artist" ${eser.artist_id ? `onclick="event.stopPropagation();openArtistModal(${eser.artist_id},event)" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px" title="${eser.artist_name||''} hakkında bilgi al"` : ''}>${eser.artist_name||'Bilinmeyen'}</div>
         <div class="product-title">${eser.title}</div>
         <div class="product-stars">${stars(eser.avg_rating||0)} <span style="color:var(--text-muted);font-size:11px">(${eser.review_count||0})</span></div>
         <div class="product-desc">${eser.description||''}</div>
@@ -2504,7 +2526,9 @@ async function openModal(id) {
   } catch {}
   currentEser = eser;
   $('modal-img').src = `images/${eser.image_url}`;
-  $('modal-artist').textContent = eser.artist_name||'Bilinmeyen Sanatçı';
+  $('modal-artist').innerHTML = eser.artist_id
+    ? `<span onclick="openArtistModal(${eser.artist_id},event)" style="cursor:pointer;text-decoration:underline;text-underline-offset:3px" title="${eser.artist_name||''} hakkında bilgi al">${eser.artist_name||'Bilinmeyen Sanatçı'}</span>`
+    : (eser.artist_name||'Bilinmeyen Sanatçı');
   $('modal-title').textContent = eser.title;
   $('modal-meta').innerHTML = `${eser.year_created||''} · ${eser.medium||''} · ${eser.dimensions||''}`;
   const disc = eser.discount_percent > 0;
@@ -3611,6 +3635,53 @@ function toggleReviewEditForm(id) {
     if (currentEvent) loadEventModalReviews(currentEvent.id);
   } else {
     showNotif("Yorum güncellenirken bir hata oluştu.", "error");
+  }
+}
+
+// ── SANATÇI BİYOGRAFİ MODAL ─────────────────────────────────
+async function openArtistModal(artistId, event) {
+  if (event) event.stopPropagation();
+  if (!artistId) return;
+  const bg = $('artist-modal-bg');
+  $('artist-modal-loading').style.display = 'block';
+  $('artist-modal-content').style.display = 'none';
+  bg.classList.add('open');
+  try {
+    const r = await fetch(`${API}/sanatci/${artistId}`);
+    if (!r.ok) throw new Error();
+    const a = await r.json();
+    $('artist-modal-name').textContent = a.name || '—';
+    $('artist-modal-nationality').textContent = a.nationality || '';
+    $('artist-modal-birth').textContent = a.birth_year ? `d. ${a.birth_year}` : '';
+    $('artist-modal-bio').textContent = a.bio || 'Bu sanatçı hakkında henüz bir biyografi bulunmamaktadır.';
+    // Sanatçının diğer eserlerini göster
+    const artistWorks = allEserler.filter(e => e.artist_id === artistId || e.artist_name === a.name);
+    if (artistWorks.length) {
+      $('artist-modal-artworks').innerHTML = `
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Galerideki Eserleri</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          ${artistWorks.map(e => `
+            <div onclick="closeArtistModal();openModal(${e.id})" style="cursor:pointer;width:72px;text-align:center">
+              <img src="images/${e.image_url}" alt="${e.title}"
+                style="width:72px;height:72px;object-fit:cover;border:1px solid var(--border);margin-bottom:4px"
+                onerror="this.src='images/placeholder.jpg'">
+              <div style="font-size:10px;color:var(--text-muted);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${e.title}</div>
+            </div>`).join('')}
+        </div>`;
+    } else {
+      $('artist-modal-artworks').innerHTML = '';
+    }
+    $('artist-modal-loading').style.display = 'none';
+    $('artist-modal-content').style.display = 'block';
+  } catch {
+    $('artist-modal-bio').textContent = 'Sanatçı bilgileri yüklenemedi.';
+    $('artist-modal-loading').style.display = 'none';
+    $('artist-modal-content').style.display = 'block';
+  }
+}
+function closeArtistModal(e) {
+  if (!e || e.target === $('artist-modal-bg') || (e.target && e.target.classList.contains('modal-close'))) {
+    $('artist-modal-bg').classList.remove('open');
   }
 }
 
