@@ -101,12 +101,10 @@ class Reservation(BaseModel):
     user_id: int
     event_id: int
     participant_count: int
-    reservation_date: str
 
 class ReservationUpdate(BaseModel):
     reservation_id: int
     participant_count: Optional[int] = None
-    reservation_date: Optional[str] = None
 
 class Purchase(BaseModel):
     user_id: int
@@ -253,8 +251,8 @@ def rezervasyon_olustur(res: Reservation, current_user=Depends(token_coz)):
     user_id = current_user["user_id"]  # ✅ JWT'den al
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    # Kontenjan kontrolü
-    cursor.execute("SELECT capacity FROM events WHERE id = %s", (res.event_id,))
+    # Kontenjan kontrolü ve etkinlik tarihini al
+    cursor.execute("SELECT capacity, event_date FROM events WHERE id = %s", (res.event_id,))
     event = cursor.fetchone()
     if not event:
         conn.close()
@@ -267,10 +265,12 @@ def rezervasyon_olustur(res: Reservation, current_user=Depends(token_coz)):
     if total + res.participant_count > event['capacity']:
         conn.close()
         raise HTTPException(status_code=400, detail="Kontenjan dolu")
+    # Tarih kullanıcıdan alınmaz; etkinliğin kendi tarihi kullanılır
+    event_date = event['event_date']
     cursor.execute("""
         INSERT INTO reservations (user_id, event_id, participant_count, reservation_date, status)
         VALUES (%s, %s, %s, %s, 'onaylandı')
-    """, (user_id, res.event_id, res.participant_count, res.reservation_date))
+    """, (user_id, res.event_id, res.participant_count, event_date))
     conn.commit()
     rid = cursor.lastrowid
     conn.close()
@@ -293,8 +293,6 @@ def rezervasyon_guncelle(upd: ReservationUpdate, current_user=Depends(token_coz)
     vals = []
     if upd.participant_count is not None:
         fields.append("participant_count=%s"); vals.append(upd.participant_count)
-    if upd.reservation_date is not None:
-        fields.append("reservation_date=%s"); vals.append(upd.reservation_date)
     if not fields:
         conn.close()
         return {"mesaj": "Güncellenecek alan yok"}

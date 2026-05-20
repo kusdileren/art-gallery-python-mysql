@@ -913,10 +913,6 @@
     <div style="padding:40px">
       <div class="section-title" style="font-size:20px;margin-bottom:20px">Rezervasyon <span id="res-event-title"></span></div>
       <div class="form-group">
-        <label>Tarih</label>
-        <input type="date" id="res-date">
-      </div>
-      <div class="form-group">
         <label>Katılımcı Sayısı</label>
         <input type="number" id="res-count" value="1" min="1">
       </div>
@@ -2198,10 +2194,6 @@ async function loadReservations() {
       
       <div id="inline-edit-res-${res.id}" style="display:none; margin-top:14px; padding:12px; border-top:1px dashed var(--border); background:#fafafa; border-radius:4px">
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end">
-          <div style="flex:1; min-width:140px">
-            <label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px">Yeni Etkinlik Tarihi</label>
-            <input type="date" id="inline-res-date-${res.id}" value="${isoDate}" style="width:100%; padding:6px; border:1px solid var(--border); font-size:13px">
-          </div>
           <div style="width:100px">
             <label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:4px">Kişi Sayısı</label>
             <input type="number" id="inline-res-count-${res.id}" value="${res.participant_count}" min="1" style="width:100%; padding:6px; border:1px solid var(--border); font-size:13px">
@@ -2215,28 +2207,7 @@ async function loadReservations() {
     </div>`;
   }).join('') : '<div class="empty-state">Henüz rezervasyonunuz yok.</div>';
 }
-async function rezervasyonDuzenle(id, oldDate, oldPct) {
-   const newDate = prompt("Yeni Tarih (YYYY-AA-GG formatında):", oldDate);
-   if (!newDate) return;
-   const newCount = prompt("Yeni Katılımcı Sayısı:", oldPct);
-   if (!newCount) return;
 
-   const r = await authFetch(`${API}/rezervasyon-guncelle`,{
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-          reservation_id: id, 
-          participant_count: parseInt(newCount), 
-          reservation_date: newDate
-      })
-   });
-   if(r.ok) { 
-       showNotif("Rezervasyon başarıyla güncellendi."); 
-       loadReservations(); 
-   } else { 
-       showNotif("Güncelleme sırasında hata oluştu", "error"); 
-   }
-}
 async function rezervasyonIptal(id) {
   if (!confirm('Rezervasyonu iptal etmek istiyor musunuz?')) return;
   await authFetch(`${API}/rezervasyon-iptal/${id}`,{method:'DELETE'});
@@ -3386,9 +3357,6 @@ function openResModal(id, title, price) {
   resEventId = id; resEventPrice = price;
   $('res-event-title').textContent = title;
   $('res-msg').textContent='';
-  const today = new Date().toISOString().split('T')[0];
-  $('res-date').value = today;
-  $('res-date').min = today;
   updateResTotal();
   $('res-modal-bg').classList.add('open');
 }
@@ -3399,12 +3367,11 @@ function updateResTotal() {
 }
 $('res-count')?.addEventListener('input', updateResTotal);
 async function rezervasyonOlustur() {
-  const date = $('res-date').value, count = parseInt($('res-count').value)||1;
-  if (!date) { $('res-msg').innerHTML='<div class="form-msg error">Tarih seçin.</div>'; return; }
+  const count = parseInt($('res-count').value)||1;
   const btn = document.querySelector('#res-modal-bg .form-submit');
   if (btn) { btn.disabled=true; btn.textContent='İşleniyor...'; }
   try {
-    const r = await authFetch(`${API}/rezervasyon`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:resEventId,participant_count:count,reservation_date:date})});
+    const r = await authFetch(`${API}/rezervasyon`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:currentUser.id,event_id:resEventId,participant_count:count})});
     const d = await r.json();
     if (r.ok) {
       $('res-msg').innerHTML=`<div class="form-msg success">✓ Rezervasyon oluşturuldu! #${d.reservation_id}</div>`;
@@ -3591,11 +3558,10 @@ function toggleResEditForm(id) {
   const form = $(`inline-edit-res-${id}`);
   if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
 }async function kaydetInlineRezervasyon(id) {
-  const newDate = $(`inline-res-date-${id}`).value;
   const newCount = parseInt($(`inline-res-count-${id}`).value);
   
-  if (!newDate || !newCount || newCount < 1) {
-    showNotif("Lütfen alanları eksiksiz doldurun.", "error");
+  if (!newCount || newCount < 1) {
+    showNotif("Lütfen katılımcı sayısını girin.", "error");
     return;
   }
 
@@ -3604,8 +3570,7 @@ function toggleResEditForm(id) {
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       reservation_id: id,
-      participant_count: newCount,
-      reservation_date: newDate
+      participant_count: newCount
     })
   });
   
