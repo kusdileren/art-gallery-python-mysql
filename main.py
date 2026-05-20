@@ -664,15 +664,11 @@ def yorum_yap(rev: Review, current_user=Depends(token_coz)):
             conn.close()
             raise HTTPException(status_code=400, detail="Bu esere zaten yorum yaptınız")
 
-        # Doğrulama: kullanıcı eseri satın almış mı? (zorunlu)
+        # Satın almış mı? → is_verified belirler, zorunlu değil
         cursor.execute("""
             SELECT id FROM orders WHERE user_id=%s AND artwork_id=%s AND status IN ('onaylandı','kargoda','teslim_edildi')
         """, (rev.user_id, rev.artwork_id))
-        purchase = cursor.fetchone()
-        if not purchase:
-            conn.close()
-            raise HTTPException(status_code=403, detail="Bu esere yorum yapabilmek için önce satın almış olmanız gerekiyor")
-        is_verified = True
+        is_verified = cursor.fetchone() is not None
         cursor.execute("""
             INSERT INTO reviews (user_id, artwork_id, rating, comment, is_verified)
             VALUES (%s, %s, %s, %s, %s)
@@ -687,15 +683,11 @@ def yorum_yap(rev: Review, current_user=Depends(token_coz)):
             conn.close()
             raise HTTPException(status_code=400, detail="Bu etkinliğe zaten yorum yaptınız")
 
-        # Doğrulama: kullanıcı etkinliğe rezervasyon yapmış mı? (zorunlu)
+        # Rezervasyon yapmış mı? → is_verified belirler, zorunlu değil
         cursor.execute("""
             SELECT id FROM reservations WHERE user_id=%s AND event_id=%s AND status='onaylandı'
         """, (rev.user_id, rev.event_id))
-        reservation = cursor.fetchone()
-        if not reservation:
-            conn.close()
-            raise HTTPException(status_code=403, detail="Bu etkinliğe yorum yapabilmek için önce rezervasyon yapmış olmanız gerekiyor")
-        is_verified = True
+        is_verified = cursor.fetchone() is not None
         cursor.execute("""
             INSERT INTO reviews (user_id, event_id, rating, comment, is_verified)
             VALUES (%s, %s, %s, %s, %s)
@@ -934,6 +926,39 @@ def sanatcilar():
     res = cursor.fetchall()
     conn.close()
     return res
+
+@app.get("/sanatci/{artist_id}")
+def sanatci_detay(artist_id: int):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM artists WHERE id = %s", (artist_id,))
+    res = cursor.fetchone()
+    conn.close()
+    if not res:
+        raise HTTPException(status_code=404, detail="Sanatçı bulunamadı")
+    return res
+
+class ArtistBioUpdate(BaseModel):
+    bio: Optional[str] = None
+    birth_year: Optional[int] = None
+    nationality: Optional[str] = None
+
+@app.put("/admin/sanatci-guncelle/{artist_id}")
+def admin_sanatci_guncelle(artist_id: int, upd: ArtistBioUpdate, current_user=Depends(admin_mi)):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    fields, vals = [], []
+    if upd.bio is not None:          fields.append("bio=%s");          vals.append(upd.bio)
+    if upd.birth_year is not None:   fields.append("birth_year=%s");   vals.append(upd.birth_year)
+    if upd.nationality is not None:  fields.append("nationality=%s");  vals.append(upd.nationality)
+    if not fields:
+        conn.close()
+        return {"mesaj": "Güncellenecek alan yok"}
+    vals.append(artist_id)
+    cursor.execute(f"UPDATE artists SET {', '.join(fields)} WHERE id=%s", vals)
+    conn.commit()
+    conn.close()
+    return {"mesaj": "Sanatçı güncellendi"}
 
 @app.get("/kategoriler")
 def kategoriler():

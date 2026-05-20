@@ -1600,29 +1600,81 @@ async function loadAdminEvents() {
       <th style="text-align:left;padding:8px">Kapasite</th><th style="text-align:left;padding:8px">Rezervasyon</th>
       <th style="text-align:left;padding:8px">İşlemler</th>
     </tr></thead><tbody>
-    ${data.map(e=>`<tr style="border-bottom:1px solid var(--border-light)">
-      <td style="padding:8px"><b>${e.title}</b></td>
-      <td style="padding:8px;color:var(--text-muted)">${new Date(e.event_date).toLocaleDateString('tr-TR')}</td>
-      <td style="padding:8px">${e.capacity}</td>
-      <td style="padding:8px">${e.total_participants}</td>
-      <td style="padding:8px">
-        <button onclick="adminEtkinlikDuzenle(${e.id},'${e.title.replace(/'/g,"\\'")}',${e.capacity},${e.price})"
-          style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--cream-light);margin-right:4px">✏️ Düzenle</button>
-        <button onclick="adminSil('admin/etkinlik-sil/${e.id}','«${e.title}» etkinliği silinsin mi?',loadAdminEvents)"
-          style="font-size:11px;padding:3px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
-      </td>
-    </tr>`).join('')}
+    ${data.map(e => {
+      const isoDate = e.event_date ? e.event_date.replace(' ','T').substring(0,16) : '';
+      return `<tr style="border-bottom:1px solid var(--border-light)" id="ev-row-${e.id}">
+        <td style="padding:8px"><b>${e.title}</b></td>
+        <td style="padding:8px;color:var(--text-muted)">${new Date(e.event_date).toLocaleDateString('tr-TR')}</td>
+        <td style="padding:8px">${e.capacity}</td>
+        <td style="padding:8px">${e.total_participants}</td>
+        <td style="padding:8px">
+          <button onclick="adminEtkinlikDuzenleToggle(${e.id})"
+            style="font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:var(--cream-light);margin-right:4px">✏️ Düzenle</button>
+          <button onclick="adminSil('admin/etkinlik-sil/${e.id}','«${e.title}» etkinliği silinsin mi?',loadAdminEvents)"
+            style="font-size:11px;padding:3px 8px;border:1px solid #f5c6cb;border-radius:4px;cursor:pointer;background:#fff5f5;color:#c0392b">🗑 Sil</button>
+        </td>
+      </tr>
+      <tr id="ev-edit-row-${e.id}" style="display:none;background:#fafafa">
+        <td colspan="5" style="padding:12px 16px;border-bottom:2px solid var(--accent)">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end">
+            <div>
+              <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Başlık</label>
+              <input id="ev-edit-title-${e.id}" value="${e.title.replace(/"/g,'&quot;')}" style="width:100%;padding:6px 8px;border:1px solid var(--border);font-size:13px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Tarih & Saat</label>
+              <input type="datetime-local" id="ev-edit-date-${e.id}" value="${isoDate}" style="width:100%;padding:6px 8px;border:1px solid var(--border);font-size:13px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Kapasite</label>
+              <input type="number" id="ev-edit-cap-${e.id}" value="${e.capacity}" min="1" style="width:100%;padding:6px 8px;border:1px solid var(--border);font-size:13px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Fiyat (₺)</label>
+              <input type="number" id="ev-edit-price-${e.id}" value="${e.price}" min="0" step="0.01" style="width:100%;padding:6px 8px;border:1px solid var(--border);font-size:13px;box-sizing:border-box">
+            </div>
+            <div style="display:flex;gap:6px">
+              <button onclick="adminEtkinlikGuncelle(${e.id})" style="flex:1;padding:6px 10px;background:var(--nav-bg);color:white;border:none;font-size:11px;cursor:pointer">💾 Kaydet</button>
+              <button onclick="adminEtkinlikDuzenleToggle(${e.id})" style="padding:6px 10px;background:transparent;border:1px solid var(--border);font-size:11px;cursor:pointer">✕</button>
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;margin-top:8px">Konum</label>
+            <input id="ev-edit-loc-${e.id}" value="${(e.location||'').replace(/"/g,'&quot;')}" style="width:50%;padding:6px 8px;border:1px solid var(--border);font-size:13px;box-sizing:border-box">
+          </div>
+          <div id="ev-edit-msg-${e.id}" style="margin-top:6px;font-size:12px"></div>
+        </td>
+      </tr>`;
+    }).join('')}
     </tbody></table>`;
 }
-function adminEtkinlikDuzenle(id, title, capacity, price) {
-  const yeni_kapasite = prompt(`"${title}" için yeni kapasite (mevcut: ${capacity}):`, capacity);
-  if (yeni_kapasite === null) return;
-  const yeni_fiyat = prompt('Yeni fiyat (₺):', price);
-  if (yeni_fiyat === null) return;
-  authFetch(`${API}/admin/etkinlik-guncelle/${id}`, {
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({capacity: parseInt(yeni_kapasite)||capacity, price: parseFloat(yeni_fiyat)||price})
-  }).then(r=>r.json()).then(d=>{ showNotif(d.mesaj||'Güncellendi.'); loadAdminEvents(); }).catch(()=>showNotif('Hata!'));
+function adminEtkinlikDuzenleToggle(id) {
+  const row = $('ev-edit-row-'+id);
+  if (!row) return;
+  row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+async function adminEtkinlikGuncelle(id) {
+  const title     = $('ev-edit-title-'+id)?.value?.trim();
+  const dateVal   = $('ev-edit-date-'+id)?.value;
+  const capacity  = parseInt($('ev-edit-cap-'+id)?.value);
+  const price     = parseFloat($('ev-edit-price-'+id)?.value);
+  const location  = $('ev-edit-loc-'+id)?.value?.trim() || null;
+  const msgEl     = $('ev-edit-msg-'+id);
+  if (!dateVal) { if(msgEl) msgEl.innerHTML='<span style="color:var(--red)">Tarih zorunludur.</span>'; return; }
+  const body = {};
+  if (title)    body.title = title;
+  if (dateVal)  body.event_date = dateVal;
+  if (capacity) body.capacity = capacity;
+  if (!isNaN(price)) body.price = price;
+  if (location !== null) body.location = location;
+  try {
+    const r = await authFetch(`${API}/admin/etkinlik-guncelle/${id}`, {
+      method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    const d = await r.json();
+    if (r.ok) { showNotif(d.mesaj||'Güncellendi.'); loadAdminEvents(); }
+    else { if(msgEl) msgEl.innerHTML=`<span style="color:var(--red)">${d.detail||'Hata!'}</span>`; }
+  } catch { if(msgEl) msgEl.innerHTML='<span style="color:var(--red)">Bağlantı hatası!</span>'; }
 }
 
 async function loadAdminUsers() {
@@ -2523,21 +2575,8 @@ async function openModal(id) {
     $('review-form-inner').style.display='none'; 
   } else { 
     $('review-auth-warning').style.display='none'; 
-    // Check if user has purchased
-    try {
-      const pr = await authFetch(`${API}/satin-alim-kontrol/${currentUser.id}/${id}`);
-      const pd = await pr.json();
-      if (pd.satin_aldi) {
-        $('review-purchase-warning').style.display='none';
-        $('review-form-inner').style.display='block';
-      } else {
-        $('review-purchase-warning').style.display='block';
-        $('review-form-inner').style.display='none';
-      }
-    } catch {
-      $('review-purchase-warning').style.display='none';
-      $('review-form-inner').style.display='block';
-    }
+    $('review-purchase-warning').style.display='none';
+    $('review-form-inner').style.display='block';
   }
 }
 function closeModal(e) {
@@ -3227,21 +3266,8 @@ async function openEventModal(id) {
     $('event-review-form-inner').style.display='none'; 
   } else { 
     $('event-review-auth-warning').style.display='none'; 
-    // Check if user has reservation
-    try {
-      const rr = await (await authFetch(`${API}/katilim-kontrol/${currentUser.id}/${ev.id}`)).json();
-      if (rr.katildi) {
-        $('event-review-reservation-warning').style.display='none';
-        $('event-review-form-inner').style.display='block';
-      } else {
-        $('event-review-reservation-warning').style.display='block';
-        $('event-review-form-inner').style.display='none';
-      }
-    } catch {
-      // Bağlantı hatası — güvenli tarafta kal, yorum formunu gizle
-      $('event-review-reservation-warning').style.display='none';
-      $('event-review-form-inner').style.display='none';
-    }
+    $('event-review-reservation-warning').style.display='none';
+    $('event-review-form-inner').style.display='block';
   }
   // Yorumları yükle
   loadEventModalReviews(ev.id);
